@@ -1,0 +1,125 @@
+---
+title: "SVARs (SVAA)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SVARs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo=F,
+  warning = F, 
+  message = F
+)
+```
+
+```{r setup}
+library(SVAA)
+
+# Dependencies
+library(tidyr)
+library(data.table)
+library(ggplot2)
+library(expm)
+```
+
+## Structural VAR
+
+The structural VAR model accounts for contemporaneous realtionships between variables entering the model. Mathematically, it is the reduced-form model pre-multiplied by $B_0$, a matrix capturing the contemporaneous relationships:
+
+$$
+\begin{aligned}
+&& y_t&=A_1 y_{t-1} + A_2 y_{t-2} + ... + A_p y_{t-p} + u_t && \text{(Reduced)} \\
+&& B_0y_t&=B_0A_1 y_{t-1} + B_0A_2 y_{t-2} + ... + B_0A_p y_{t-p} + \varepsilon_t \\
+&& B_0y_t&=B_1 y_{t-1} + B_2 y_{t-2} + ... + B_p y_{t-p} + \varepsilon_t && \text{(Structural)} \\
+\end{aligned}
+$$
+
+By convention the covariance matrix of the structural errors $\varepsilon_t$ is normalised to $\Sigma_{\varepsilon} = I_k$ such that $\Sigma_u=B_0^{-1}{B_0^{-1}}'$. Note that $\frac{(k+1)k}{2}$ elements of $\Sigma_u$ can be uniquely estimated in the reduced form VAR (Gottschalk 2001), since off-diagonal elements in the lower and upper triangle are duplicates of each other. Thus, one needs to impose restrictions on the $\frac{(k-1)k}{2}$
+remaining parameters of $B_0$ for the model to be just identified.
+
+We will consider the following example data set:
+
+```{r example-data}
+dt = data.table::data.table(SVAA::canada)
+var_cols = colnames(dt)[2:ncol(dt)]
+DT::datatable(dt) %>%
+  DT::formatRound(columns = 1:ncol(dt))
+dt[,(var_cols) := lapply(.SD, function(i) c(0,diff(i))), .SDcols=var_cols]
+lag_selection = VAR_lag_select(dt[,.SD,.SDcols=var_cols])
+lag = lag_selection$p
+varresult = VAR(dt[,.SD,.SDcols=var_cols], lag = lag, method = "ls", verbose = F)
+```
+
+### Impulse response functions
+
+#### Bootstrapped confidence-intervals
+
+```{r, fig.dim=c(7,4)}
+irf_output = irf(varresult, imp = 1)
+```
+
+### Variance decompositions
+
+#### Forecast error variance decomposition (FEVD)
+
+```{r, fig.dim=c(7,4)}
+fevd_output = fevd(varresult)
+fevd_output$plot
+```
+
+
+#### Historical decompositon
+
+```{r, eval=F, fig.dim=c(7,4)}
+# Historical decomposition as in Kilian and Luetkepohl ----
+csvs = list.files("data/kilian_lee")
+kilian_lee = lapply(1:length(csvs), function(i) {
+  fread(sprintf("data/kilian_lee/%s", csvs[i]))
+})
+names(kilian_lee) = gsub(".csv","",csvs)
+A_comp = as.matrix(kilian_lee$A)
+B_0 = solve(kilian_lee$B0inv)
+lag = 24
+dt = kilian_lee$y
+N = nrow(dt)-lag
+K = ncol(dt)
+u = as.matrix(kilian_lee$Uhat)
+
+var_names = c("a", "b", "Oil price", "d")
+colnames(dt) = var_names
+
+# Step 1 - compute structural coefficient matrices: ----
+Phi = compute_Phi(lag, K, A_comp, const, n.ahead=N)
+Theta = compute_Theta(Phi, B_0)
+
+# Step 2 - compute the structural shocks: ----
+w = u %*% t(B_0)
+
+# Step 3 - match structural shocks with appropriate impulse response weight: ----
+y_hat_dt = data.table::rbindlist(
+  lapply(1:N, function(t) { # loop over time periods
+    terms_to_sum = lapply(1:t, function(s) {
+      sapply(1:K, function(k) Theta[[s]][k,] * w[t-s+1,])
+    })
+    y_hat_t = Reduce(`+`, terms_to_sum)
+    colnames(y_hat_t) = var_names
+    y_hat_t = data.table::data.table(t(y_hat_t))[,c("k","t"):=.(var_names, t)]
+    return(y_hat_t)
+  })
+)[order(k,t)]
+
+# Step 4 - tidy up: ----
+y_hat_dt[,actual:=detrend(dt[,k]),by=k]
+y_hat_dt[,fitted:=rowSums(.SD),.SDcols=var_names]
+y_hat_dt[,residual:=actual-fitted]
+```
+
+```{r, fig.dim=c(7,4)}
+hd(varresult = varresult)
+```
+

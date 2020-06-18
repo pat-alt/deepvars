@@ -1,0 +1,183 @@
+---
+title: "VARs (SVAA)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{VARs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo=F,
+  warning = F, 
+  message = F
+)
+```
+
+```{r setup}
+library(SVAA)
+
+# Dependencies
+library(tidyr)
+library(data.table)
+library(ggplot2)
+library(expm)
+```
+
+## Reduced-form VAR 
+
+The reduced-form VAR($p$) with $K$ variables and $p$ lags (with $m \in [1,p]$) can be written as
+
+$$
+\begin{aligned}
+&& y_t&=A_1 y_{t-1} + A_2 y_{t-2} + ... + A_p y_{t-p} + u_t \\
+\end{aligned}
+$$
+
+where $y_{t-m}$ are $(K \times 1)$ vectors , $A_m$ are $(K \times K)$ matrices of coefficients and $u_t$ is a $(K \times 1)$ vector of residuals. 
+
+### Estimation of VARs 
+
+The reduced-from VAR can be estimated by least-squares. 
+
+#### Least Squares
+
+We can rewrite the reduced-form model as 
+
+$$
+\begin{aligned}
+&& Y&= Z A + U \\
+\end{aligned}
+$$
+
+such that the OLS estimator is simply
+
+$$
+\begin{aligned}
+&& \hat{A}&= {(Z'Z)}^{-1}Z'Y  \\
+\end{aligned}
+$$
+
+where $Y$, $Z$ and $\hat{A}$ are of dimensions $(T \times K)$, $(T \times (Kp+1))$ and $((Kp+1) \times K)$, respectively.  
+
+#### MLE
+
+Equivalently, we can estimate the VAR through *Maximum-Likelihood-Estimation* (MLE). Under the assumption that $y_t$ are jointly normal (since by assumption $u_t \sim N(0, \Sigma_u)$), we have for the distribution function:
+
+$$
+\begin{aligned}
+&& f(y_t|y_{t-1},...,y_{t-p+1})&=\left(\frac{1}{2 \pi} \right)^{\frac{k}{2}} det \left( \Sigma_u\right)^{-\frac{1}{2}}  exp \left(-\frac{1}{2} u_t'{\Sigma_u}^{-1}u_t \right)\\
+\end{aligned}
+$$
+
+#### Estimation
+
+The `VAR` function can be used to estimate the VAR by least-squares or MLE. All estimations are run on an example data set. 
+
+```{r example-data}
+dt = data.table::data.table(SVAA::canada)
+var_cols = colnames(dt)[2:ncol(dt)]
+DT::datatable(dt) %>%
+  DT::formatRound(columns = 1:ncol(dt))
+```
+
+The underlying time series in levels look non-stationary 
+
+```{r levels, fig.dim=c(7,4), fig.cap="Time series in levels."}
+chart_data = dt
+chart_data = data.table::melt(chart_data, id.vars = "date")
+
+ggplot2::ggplot(chart_data) +
+  ggplot2::geom_line(ggplot2::aes(y=value, x=date)) +
+  ggplot2::facet_wrap(variable ~ ., scales = "free_y") +
+  ggplot2::theme_bw() +
+  ggplot2::labs(
+    x="Date",
+    y="Value"
+  )
+```
+
+
+```{r}
+lags = 3
+```
+
+Below the model is estimated in levels using `r lags` lags firstly through least-squares and secondly through MLE. 
+
+```{r, echo=T}
+var_ls = VAR(dt[,.SD,.SDcols=var_cols], lag = lags, method = "ls", verbose = F)
+var_mle = VAR(dt[,.SD,.SDcols=var_cols], lag = lags, method = "mle", verbose = F)
+```
+
+### Stability condition
+
+Above all series entered the estimation in levels. This may cause the VAR to be non-stable if one or more series are non-stationary. We can test for the VAR's stability by checking if the eigenvalues of its companion-form matrix lie within the unit circle. If furthermore $u_t$ has time-invariant variance and its first two moments are bounded, then the VAR is stationary. 
+
+The `VAR_stable` function can be used to do this. Applying this function to the previously estimated VAR reveals that it is in fact not stable, so at least one of the underlying variables is non-stationary. 
+
+```{r, echo=T}
+invisible(VAR_stable(var_ls, verbose = F)$test_result)
+```
+
+Standard univariate tests (e.g. ADF) can be used to test individual series for non-stationarity. For simplicity, let us take first differences of all series, which upon visual inspection look stationary pre. 
+
+```{r after-diff, fig.dim=c(7,4), fig.cap="Time series in differences."}
+dt[,(var_cols) := lapply(.SD, function(i) c(0,diff(i))), .SDcols=var_cols]
+chart_data = dt
+chart_data = data.table::melt(chart_data, id.vars = "date")
+
+ggplot2::ggplot(chart_data) +
+  ggplot2::geom_line(ggplot2::aes(y=value, x=date)) +
+  ggplot2::facet_wrap(variable ~ ., scales = "free_y") +
+  ggplot2::theme_bw() +
+  ggplot2::labs(
+    x="Date",
+    y="Value"
+  )
+```
+
+Re-running the stability test with the transformed data shows that the var is now stable when using `r lags` lags:
+
+```{r, echo=T}
+invisible(VAR_stable(VAR(dt[,.SD,.SDcols=var_cols], lag=3, verbose = F))$test_result)
+```
+
+
+### Lag-length selection
+
+Finally, let's turn to selecting the right lag length for our estimation. The most common way to select the lag-length is through information criteria, which can be down using the `VAR_lag_select` function.By default the maximum considered lag length is set to 10 and the Akaike Information Criterium is used. Applying the function to the data in differences yields
+
+```{r}
+lag_selection = VAR_lag_select(dt[,.SD,.SDcols=var_cols])
+knitr::kable(lag_selection$criteria_overview)
+lag = lag_selection$p
+```
+
+suggesting that we should us $p=`r lag`$ as the AIC is minimized for that choice. The table below shows the resulting coefficients when re-running the VAR estimation through least-squares with differenced data and the proposed, optimal lag-length. 
+
+```{r ls-diff-res, fig.dim=c(7,4), fig.cap="Coefficient estimates through least-squares after taking first differences."}
+varresult = VAR(dt[,.SD,.SDcols=var_cols], lag = lag, method = "ls", verbose = F)
+DT::datatable(varresult$coeff_tidy) %>%
+  DT::formatRound(columns = 1:ncol(var_ls$coeff_tidy))
+```
+
+### Prediction
+
+```{r}
+n.ahead = 10
+fig_cap = sprintf("%i-step ahead predictions from estimated VAR.",
+                  n.ahead)
+```
+
+Once the VAR has been fitted, it can be used for prediction. 
+
+... Maths to follow
+
+In R, we can predict from a model that has been estimated through `VAR` using the `VAR_predict` function. The figure below shows the `r n.ahead`-step ahead predictions for our model. 
+
+```{r predict, fig.dim=c(7,4), fig.cap=fig_cap}
+my_pred = VAR_predict(varresult, n.ahead, plot = T, theme = theme_bw())
+```

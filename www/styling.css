@@ -1,0 +1,18 @@
+.body {
+  font-family: "Bliss Pro","BlissWeb","Trebuchet MS","Lucida Grande","Lucida Sans",Tahoma,sans-serif;
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+  font-family: "Bliss Pro","BlissWeb","Trebuchet MS","Lucida Grande","Lucida Sans",Tahoma,sans-serif;
+  color: black;
+}
+
+.h2, .h3, h2, h3 {
+  color: rgb(170, 11, 60);
+}
+
+.fa, .fas {
+  font-weight: 900;
+  color: black;
+}
+
