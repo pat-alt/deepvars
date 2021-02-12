@@ -2,7 +2,7 @@
 SVAA
 ====
 
-The goal of SVAA is is to provide an accessible and scalable framework
+The goal of SVAA is to provide an accessible and scalable framework
 for structural vector autoregressive analysis in R. This guide will not only take you through the core
 functionality of SVAA, but also explain theory underlying the code. The
 package draws heavily on the text book [Structural Vector Autoregressive
