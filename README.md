@@ -15,16 +15,9 @@ Kilian and Helmut Luethkepohl.
 Installation
 ------------
 
-You can install SVAA from the Bank's package repository -
-[Artifactory](https://binarycentral/artifactory/webapp/). In most cases
-R will automatically be linked to Artifactory, so you should be able to
-install SVAA in the same way you would install any other package:
+You can install SVAA from GitHub through:
 
-    install.packages("SVAA")
-
-If this does not work for you, please see
-[here](https://bankexchange/groups/1067/Pages/Wiki/Accessing%20and%20using%20Artifactory.aspx)
-for guidance on accessing Artifactory.
+    idevtools::install_git("pat-alt/SVAA")
 
 Once installed you need to attach the package:
 
