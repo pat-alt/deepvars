@@ -30,7 +30,7 @@ VARMA = function(varresult) {
 
   # Compute terms ----
   J = compute_J(K, lag)
-  Phi = compute_Phi(lag, K, A_comp, const, N)
+  Phi = red_ir(lag, K, A_comp, const, N)
 
   # Compute y_hat from VARMA representation ----
   sapply(1:N, function(t) {

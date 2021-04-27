@@ -32,7 +32,7 @@ hd = function(
   Y = varresult$Y
 
   # Step 1 - compute structural coefficient matrices: ----
-  Phi = compute_Phi(lag, K, A_comp, const, n.ahead=N)
+  Phi = red_ir(lag, K, A_comp, const, n.ahead=N)
   B_0 = identify_chol(Sigma_res)
   Theta = compute_Theta(Phi, B_0)
 

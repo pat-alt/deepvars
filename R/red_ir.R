@@ -1,4 +1,4 @@
-#' compute_Phi
+#' red_ir
 #'
 #' @param lag
 #' @param K
@@ -11,9 +11,9 @@
 #' @return
 #' @export
 #'
-#' @description Helper function used to compute Phi coefficients as in Kilian, Luetkepohl
+#' @description Computes the reduced-form impulse responses. These are denoted as by Phi in Kilian, Luetkepohl.
 #'
-compute_Phi = function(lag, K, A_comp, const, n.ahead) {
+red_ir = function(lag, K, A_comp, const, n.ahead) {
 
   J = compute_J(K, lag)
 

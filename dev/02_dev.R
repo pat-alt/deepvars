@@ -34,7 +34,7 @@ usethis::use_package("testthat", "Suggests", min_version = T)
 ## Add one line by test you want to create
 usethis::use_test( "compute_J" )
 usethis::use_test( "compute_mspe" )
-usethis::use_test( "compute_Phi" )
+usethis::use_test( "red_ir" )
 usethis::use_test( "compute_Sigma_Y" )
 usethis::use_test( "compute_Theta" )
 usethis::use_test( "compute_theta_kj_sq" )

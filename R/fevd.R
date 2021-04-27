@@ -34,7 +34,7 @@ fevd = function(varresult,
   var_names = varresult$var_names
 
   # Compute MSPE ----
-  Phi = compute_Phi(lag, K, A_comp, const, n.ahead)
+  Phi = red_ir(lag, K, A_comp, const, n.ahead)
   B_0 = identify_chol(Sigma_res)
   Theta = compute_Theta(Phi, B_0)
   theta_kj_sq = compute_theta_kj_sq(Theta, n.ahead)
