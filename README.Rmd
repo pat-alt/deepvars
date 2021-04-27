@@ -1,7 +1,17 @@
 ---
-output: md_document
-always_allow_html: true
+output: github_document
 ---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
@@ -25,7 +35,7 @@ The goal of SVAA is to provide an accessible and scalable framework for structur
 You can either clone this repository and install from source or simply run the below in R:
 
 ``` r
-devtools::install_github(https://github.com/pat-alt/SVAA)
+devtools::install_github("pat-alt/SVAA")
 ```
 
 Once installed you need to attach the package:
