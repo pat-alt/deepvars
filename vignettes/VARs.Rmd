@@ -7,17 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  echo=F,
-  warning = F, 
-  message = F
-)
-```
-
-```{r setup}
+```{r setup, include = FALSE}
 library(SVAA)
 
 # Dependencies
@@ -25,6 +15,14 @@ library(tidyr)
 library(data.table)
 library(ggplot2)
 library(expm)
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo=F,
+  warning = F, 
+  message = F
+)
 ```
 
 ## Reduced-form VAR 
@@ -122,7 +120,7 @@ The `VAR_stable` function can be used to do this. Applying this function to the 
 invisible(VAR_stable(var_ls, verbose = F)$test_result)
 ```
 
-Standard univariate tests (e.g. ADF) can be used to test individual series for non-stationarity. For simplicity, let us take first differences of all series, which upon visual inspection look stationary pre. 
+Standard univariate tests (e.g. ADF) can be used to test individual series for non-stationarity. For simplicity, let us take first differences of all series, which upon visual inspection look stationary. 
 
 ```{r after-diff, fig.dim=c(7,4), fig.cap="Time series in differences."}
 dt[,(var_cols) := lapply(.SD, function(i) c(0,diff(i))), .SDcols=var_cols]

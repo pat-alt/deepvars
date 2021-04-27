@@ -10,7 +10,7 @@
 #'
 compute_J = function(K, lag) {
 
-  J = matrix(0,nrow=K,ncol=K*lags)
+  J = matrix(0,nrow=K,ncol=K*lag)
   diag(J) = 1
   return(J)
 

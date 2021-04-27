@@ -24,27 +24,3 @@ This guide will not only take you through the core functionality of SVA, but als
 
 ## Installation
 
-You can install the released version of SVAA from the Bank's package repository - [Artifactory](https://binarycentral/artifactory/webapp/). In most cases R will automatically be linked to Artifactory, so you should be able to install SVAA in the same way you would install any other package:
-
-``` r
-install.packages("SVAA")
-```
-
-If this does not work for you, please see [here](https://bankexchange/groups/1067/Pages/Wiki/Accessing%20and%20using%20Artifactory.aspx) for guidance on accessing Artifactory. 
-
-Once installed you need to attach the package:
-
-```{r attach}
-library(SVAA)
-## basic example code
-
-# Dependencies
-library(tidyr)
-library(data.table)
-library(ggplot2)
-library(expm)
-```
-
-Along with SVAA I have also attached a couple of its dependencies for this guide. All dependencies should have been automatically installed as part of the installation of SVAA.
-
-

@@ -7,17 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  echo=F,
-  warning = F, 
-  message = F
-)
-```
-
-```{r setup}
+```{r setup, include = FALSE}
 library(SVAA)
 
 # Dependencies
@@ -25,6 +15,14 @@ library(tidyr)
 library(data.table)
 library(ggplot2)
 library(expm)
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo=F,
+  warning = F, 
+  message = F
+)
 ```
 
 ## Structural VAR
