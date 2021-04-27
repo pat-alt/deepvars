@@ -8,7 +8,7 @@ Description: SVAA provides a framework for Structural Vector Autoregressive Anal
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 Imports: 
     expm (>= 0.999.4),
     data.table (>= 1.12.6),

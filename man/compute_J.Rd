@@ -15,3 +15,6 @@ compute_J(K, lag)
 \description{
 compute_J
 }
+\details{
+Helper function to create the allocation matrix J, which can be used to transform a $VAR(p)$ into $VMA$ represntation.
+}

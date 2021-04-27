@@ -4,7 +4,7 @@
 \alias{compute_theta_kj_sq}
 \title{compute_theta_kj_sq}
 \usage{
-compute_theta_kj_sq(Theta, n.ahead = 10)
+compute_theta_kj_sq(Theta, n.ahead)
 }
 \arguments{
 \item{n.ahead}{}
@@ -14,4 +14,7 @@ compute_theta_kj_sq(Theta, n.ahead = 10)
 }
 \description{
 compute_theta_kj_sq
+}
+\details{
+Helper function used to compute orthogonalised IRFs as in Kilian, Luetkepohl. These represent the reduced form impulse response functions.
 }
