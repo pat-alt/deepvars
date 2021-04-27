@@ -26,7 +26,7 @@ You can either clone this repository and install from source or simply
 run the below in R:
 
 ``` r
-devtools::install_github("pat-alt/SVAA")
+devtools::install_github("pat-alt/SVAA", build_vignettes=TRUE)
 ```
 
 Once installed you need to attach the package:
