@@ -4,12 +4,19 @@
 \alias{VAR}
 \title{VAR}
 \usage{
-VAR(data, lag, method = "ls", constant = T, ci = 0.95, verbose = T)
+VAR(
+  data,
+  lags = 1,
+  method = "ols",
+  constant = TRUE,
+  ci = 0.95,
+  standardize = FALSE
+)
 }
 \arguments{
 \item{data}{Data set}
 
-\item{lag}{Number of lags}
+\item{lags}{Number of lags}
 }
 \value{
 
