@@ -85,6 +85,7 @@ mse.var_model <- function(var_model,X=NULL,y=NULL) {
   return(mse)
 }
 
+#' @export
 mse <- function(var_model,X=NULL,y=NULL) {
   UseMethod("mse", var_model)
 }
