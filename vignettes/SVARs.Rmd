@@ -49,8 +49,8 @@ DT::datatable(dt) %>%
   DT::formatRound(columns = 1:ncol(dt))
 dt[,(var_cols) := lapply(.SD, function(i) c(0,diff(i))), .SDcols=var_cols]
 lag_selection = VAR_lag_select(dt[,.SD,.SDcols=var_cols])
-lag = lag_selection$p
-varresult = VAR(dt[,.SD,.SDcols=var_cols], lag = lag, method = "ls", verbose = F)
+lags = lag_selection$p
+varresult = VAR(dt, lags = lags)
 ```
 
 ### Impulse response functions

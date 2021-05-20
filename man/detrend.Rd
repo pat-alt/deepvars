@@ -4,10 +4,10 @@
 \alias{detrend}
 \title{detrend}
 \usage{
-detrend(Y)
+detrend(y)
 }
 \arguments{
-\item{Y}{}
+\item{y}{}
 }
 \value{
 

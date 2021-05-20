@@ -17,27 +17,16 @@ hd = function(
 {
 
   # Get outputs ----
-  data = data.table::as.data.table(varresult$data)
-  constant = varresult$constant # boolean
-  const = ifelse(constant, 1, 0)
-  lag = varresult$lag
-  A = varresult$A
-  A_comp = varresult$A_comp
-  K = varresult$K
-  df = varresult$df
-  Sigma_res = varresult$Sigma_res
-  var_names = varresult$var_names
-  N = varresult$N
-  u = varresult$res
-  Y = varresult$Y
+  list2env(varresult, envir = environment())
+  list2env(varresult$model_data, envir = environment())
 
   # Step 1 - compute structural coefficient matrices: ----
-  Phi = red_ir(lag, K, A_comp, const, n.ahead=N)
+  Phi = red_ir(lags, K, A_comp, const, n.ahead=N)
   B_0 = identify_chol(Sigma_res)
   Theta = compute_Theta(Phi, B_0)
 
   # Step 2 - compute the structural shocks: ----
-  w = u %*% t(B_0)
+  w = res %*% t(B_0)
 
   # Step 3 - match structural shocks with appropriate impulse response weight: ----
   y_hat_dt = data.table::rbindlist(
@@ -53,7 +42,7 @@ hd = function(
   )[order(k,t)]
 
   # Step 4 - tidy up: ----
-  y_hat_dt[,actual:=detrend(Y[,k]),by=k]
+  y_hat_dt[,actual:=detrend(y[,k]),by=k]
   y_hat_dt[,fitted:=rowSums(.SD),.SDcols=var_names]
   y_hat_dt[,residual:=actual-fitted]
 

@@ -1,14 +1,14 @@
 #' detrend
 #'
-#' @param Y
+#' @param y
 #'
 #' @return
 #' @export
-detrend = function(Y) {
-  Y = as.matrix(Y)
-  sapply(1:ncol(Y), function(i) {
-    y = Y[,i]
-    t = 1:length(y)
-    stats::lm(y ~ t)$res
+detrend = function(y) {
+  y = as.matrix(y)
+  sapply(1:ncol(y), function(i) {
+    y_i = y[,i]
+    t = 1:length(y_i)
+    stats::lm(y_i ~ t)$res
   })
 }

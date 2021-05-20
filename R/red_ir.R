@@ -13,9 +13,9 @@
 #'
 #' @description Computes the reduced-form impulse responses. These are denoted as by Phi in Kilian, Luetkepohl.
 #'
-red_ir = function(lag, K, A_comp, const, n.ahead) {
+red_ir = function(lags, K, A_comp, const, n.ahead) {
 
-  J = compute_J(K, lag)
+  J = compute_J(K, lags)
 
   Phi = lapply(1:n.ahead, function(i) {
     J %*% (A_comp %^% (i-1)) %*% t(J)

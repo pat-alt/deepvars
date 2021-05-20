@@ -4,7 +4,7 @@
 \alias{compute_J}
 \title{compute_J}
 \usage{
-compute_J(K, lag)
+compute_J(K, lags)
 }
 \arguments{
 \item{lag}{}

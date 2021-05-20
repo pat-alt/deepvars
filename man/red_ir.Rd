@@ -4,7 +4,7 @@
 \alias{red_ir}
 \title{red_ir}
 \usage{
-red_ir(lag, K, A_comp, const, n.ahead)
+red_ir(lags, K, A_comp, const, n.ahead)
 }
 \arguments{
 \item{n.ahead}{}

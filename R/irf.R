@@ -13,52 +13,36 @@
 #'
 #' @author Patrick Altmeyer
 
-irf = function(varresult,
-               imp,
-               structural = T,
-               n_ahead = 10,
-               size = 1,
-               bootstrap = T,
-               n_bootstrap = 1000,
-               parametric = F,
-               ci = .95,
-               plot = T,
-               cum = T) {
+irf = function(
+  varresult,
+  imp,
+  structural = T,
+  n_ahead = 10,
+  size = 1,
+  bootstrap = T,
+  n_bootstrap = 1000,
+  parametric = F,
+  ci = .95,
+  plot = T,
+  cum = T
+) {
 
   # Get outputs ----
-  A = varresult$A # coefficient matrix
-  K = varresult$K # number of variables in the system
-  N = varresult$N
-  var_names = varresult$var_names
-  lag = varresult$lag
-  Sigma_res = varresult$Sigma_res
-  res = varresult$res
-  Y = varresult$Y
-  Z = varresult$Z
-  constant = varresult$constant
-  const = varresult$const
-  data = varresult$data
+  list2env(varresult, envir = environment())
+  list2env(varresult$model_data, envir = environment())
 
   # Compute IRF ----
-  compute_IRF = function(varresult,
-                         imp,
-                         structural,
-                         n_ahead ,
-                         size) {
+  compute_IRF = function(
+    varresult,
+    imp,
+    structural,
+    n_ahead ,
+    size
+  ) {
 
     # Get outputs ----
-    A = varresult$A # coefficient matrix
-    K = varresult$K # number of variables in the system
-    N = varresult$N
-    var_names = varresult$var_names
-    lag = varresult$lag
-    Sigma_res = varresult$Sigma_res
-    res = varresult$res
-    Y = varresult$Y
-    Z = varresult$Z
-    constant = varresult$constant
-    const = varresult$const
-    data = varresult$data
+    list2env(varresult, envir = environment())
+    list2env(varresult$model_data, envir = environment())
 
     # Pre-processing ----
     imp = ifelse(class(imp) == "character", which(var_names == imp), imp)
@@ -78,27 +62,27 @@ irf = function(varresult,
     }
     shocks = pre_multiply_shocks %*% u
     # Vector of regressors:
-    X = matrix(rep(0,K * lag), nrow=K * lag)
-    names(X) = colnames(Z)[(1+const):ncol(Z)]
+    X_ = matrix(rep(0,K * lags), nrow=K * lags)
+    names(X_) = colnames(X)[(1+constant):ncol(X)]
     # Coefficients:
-    A_trans = t(A[(1+const):nrow(A),])
+    A_trans = t(A[(1+constant):nrow(A),])
     # Container for state responses:
     irf = matrix(NA, nrow = n_ahead+1, ncol=K)
     colnames(irf) = var_names
     # Initial shocks at time zero:
-    Y_h = A_trans %*% X + shocks
+    Y_h = A_trans %*% X_ + shocks
     irf[1,] = Y_h
-    # Update vector of regressors (lagged values of Y):
-    X = c(Y_h,X)[1:(K * lag)]
-    names(X) = colnames(Z)[(1+const):ncol(Z)]
+    # Update vector of regressors (lagged values of y):
+    X_ = c(Y_h,X_)[1:(K * lags)]
+    names(X_) = colnames(X)[(1+constant):ncol(X)]
 
     # Recursion ----
     for (h in 2:(n_ahead+1)) {
 
-      Y_h = A_trans %*% X
+      Y_h = A_trans %*% X_
       # Update vector of regressors:
-      X = c(Y_h,X)[1:(K * lag)]
-      names(X) = colnames(Z)[(1+const):ncol(Z)]
+      X_ = c(Y_h,X_)[1:(K * lags)]
+      names(X_) = colnames(X)[(1+constant):ncol(X)]
       # Update IRF
       irf[h,] = Y_h
 
@@ -114,11 +98,13 @@ irf = function(varresult,
 
   }
 
-  irf_output = compute_IRF(varresult,
-                           imp,
-                           structural,
-                           n_ahead,
-                           size)
+  irf_output = compute_IRF(
+    varresult,
+    imp,
+    structural,
+    n_ahead,
+    size
+  )
 
   # Bootstrapped confidence intervals ----
   if (bootstrap==T) {
@@ -138,26 +124,26 @@ irf = function(varresult,
 
       # STEP 2 - simulate VAR(p) recursively
       # Initialization
-      Y_star = Y[1:lag,] # pre-sample values actually realized
+      Y_star = y[1:lags,] # pre-sample values actually realized
 
       # Recursion
       for (i in 1:nrow(res_star)) {
 
         # Regressor
         if (constant==T) {
-          X = c(1,t(Y_star[nrow(Y_star):(nrow(Y_star)-lag+1),]))
+          X_ = c(1,t(Y_star[nrow(Y_star):(nrow(Y_star)-lags+1),]))
         } else {
-          X = c(t(Y_star[nrow(Y_star):(nrow(Y_star)-lag+1),]))
+          X_ = c(t(Y_star[nrow(Y_star):(nrow(Y_star)-lags+1),]))
         }
 
-        Y_hat = X %*% A + res_star[i,] # 1-step ahead prediction
+        Y_hat = X_ %*% A + res_star[i,] # 1-step ahead prediction
         # Update y_star:
         Y_star = rbind(Y_star, Y_hat)
 
       }
 
       # STEP 3 - estimate VAR(p) for simulated data ----
-      varresult_star = VAR(Y_star,lag, constant = constant, verbose = F)
+      varresult_star = VAR(Y_star,lags, constant = constant)
 
       # STEP 4 - estimate IRF using new coefficients ----
       irf_star = compute_IRF(varresult = varresult_star,

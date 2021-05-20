@@ -12,25 +12,12 @@
 VARMA = function(varresult) {
 
   # Get outputs ----
-  data = data.table::as.data.table(varresult$data)
-  constant = varresult$constant # boolean
-  const = ifelse(constant, 1, 0)
-  lag = varresult$lag
-  A = varresult$A
-  A_comp = varresult$A_comp
-  K = varresult$K
-  df = varresult$df
-  Sigma_res = varresult$Sigma_res
-  var_names = varresult$var_names
-  N = varresult$N
-  u = varresult$res
-  Y = varresult$Y
-  res = varresult$res
-  u = res
+  list2env(varresult, envir = environment())
+  list2env(varresult$model_data, envir = environment())
 
   # Compute terms ----
-  J = compute_J(K, lag)
-  Phi = red_ir(lag, K, A_comp, const, N)
+  J = compute_J(K, lags)
+  Phi = red_ir(lags, K, A_comp, const, N)
 
   # Compute y_hat from VARMA representation ----
   sapply(1:N, function(t) {

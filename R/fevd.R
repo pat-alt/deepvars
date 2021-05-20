@@ -11,30 +11,24 @@
 #' @description Function used to compute forecast error variance decomposition as in Kilian, Luetkepohl
 #'
 
-fevd = function(varresult,
-                n.ahead=10,
-                plot=T,
-                ylab="Variance contribution",
-                xlab="Forecast horizon",
-                title=NULL,
-                theme=ggplot2::theme_bw())
+fevd = function(
+  varresult,
+  n.ahead=10,
+  plot=T,
+  ylab="Variance contribution",
+  xlab="Forecast horizon",
+  title=NULL,
+  theme=ggplot2::theme_bw()
+)
 
 {
 
   # Get outputs ----
-  data = data.table::as.data.table(varresult$data)
-  constant = varresult$constant # boolean
-  const = ifelse(constant, 1, 0)
-  lag = varresult$lag
-  A = varresult$A
-  A_comp = varresult$A_comp
-  K = varresult$K
-  df = varresult$df
-  Sigma_res = varresult$Sigma_res
-  var_names = varresult$var_names
+  list2env(varresult, envir = environment())
+  list2env(varresult$model_data, envir = environment())
 
   # Compute MSPE ----
-  Phi = red_ir(lag, K, A_comp, const, n.ahead)
+  Phi = red_ir(lags, K, A_comp, const, n.ahead)
   B_0 = identify_chol(Sigma_res)
   Theta = compute_Theta(Phi, B_0)
   theta_kj_sq = compute_theta_kj_sq(Theta, n.ahead)
