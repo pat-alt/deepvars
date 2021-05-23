@@ -1,10 +1,10 @@
-Package: SVAA
+Package: deepvars
 Type: Package
-Title: Structural Vector Autoregressive Analysis
+Title: Deep Vector Autoregression
 Version: 0.1.0
 Author: Patrick Altmeyer
-Maintainer: <patrick.altmeyer@bankofengland.co.uk>
-Description: SVAA provides a framework for Structural Vector Autoregressive Analysis in R. 
+Maintainer: <patrick.altmeyer@barcelonagse.eu>
+Description: deepvars provides a framework for deep vector autoregression in R. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

@@ -1,4 +1,4 @@
 library(testthat)
-library(SVAA)
+library(deepvars)
 
-test_check("SVAA")
+test_check("deepvars")

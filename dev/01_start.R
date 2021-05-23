@@ -1,4 +1,4 @@
-usethis::use_mit_license( name = "SVAA User" )  # You can set another license here
+usethis::use_mit_license( name = "deepvars User" )  # You can set another license here
 usethis::use_readme_rmd( open = FALSE )
 usethis::use_lifecycle_badge( "Experimental" )
 usethis::use_news_md( open = FALSE )

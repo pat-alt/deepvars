@@ -1,5 +1,5 @@
 ---
-title: "SVARs (SVAA)"
+title: "SVARs (`deepvars`)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{SVARs}
@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-library(SVAA)
+library(deepvars)
 
 # Dependencies
 library(tidyr)
@@ -43,7 +43,7 @@ remaining parameters of $B_0$ for the model to be just identified.
 We will consider the following example data set:
 
 ```{r example-data}
-dt = data.table::data.table(SVAA::canada)
+dt = data.table::data.table(deepvars::canada)
 var_cols = colnames(dt)[2:ncol(dt)]
 DT::datatable(dt) %>%
   DT::formatRound(columns = 1:ncol(dt))

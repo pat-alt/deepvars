@@ -55,9 +55,10 @@ usethis::use_data(canada, internal = F, overwrite = T)
 # Documentation
 
 ## Vignette ----
-usethis::use_vignette("SVAA")
+usethis::use_vignette("Intro")
 usethis::use_vignette("VARs")
 usethis::use_vignette("SVARs")
+usethis::use_vignette("deep_vars")
 devtools::build_vignettes()
 
 ## PDF manual ----

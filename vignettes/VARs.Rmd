@@ -1,5 +1,5 @@
 ---
-title: "VARs (SVAA)"
+title: "VAR (`deepvars`)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{VARs}
@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-library(SVAA)
+library(deepvars)
 
 # Dependencies
 library(tidyr)
@@ -76,7 +76,7 @@ $$
 The `VAR` function can be used to estimate the VAR by least-squares or MLE. All estimations are run on an example data set. 
 
 ```{r example-data}
-dt = data.table::data.table(SVAA::canada)
+dt = data.table::data.table(deepvars::canada)
 var_cols = colnames(dt)[2:ncol(dt)]
 DT::datatable(dt) %>%
   DT::formatRound(columns = 1:ncol(dt))
