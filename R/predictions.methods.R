@@ -15,7 +15,6 @@ plot.predictions <- function(predictions, y_true=NULL) {
     y_true <- melt(y_true, id.vars = "type")
   }
   dt_plot <- rbind(pred,y_true)
-  dt_plot[,date:=1:(.N),by=.(variable, type)]
   p <- ggplot(data=dt_plot, aes(x=date, y=value, colour=type)) +
     geom_line() +
     scale_color_discrete(name="Type:") +
@@ -25,7 +24,7 @@ plot.predictions <- function(predictions, y_true=NULL) {
       nrow = dt_plot[,length(unique(variable))]
     ) +
     labs(
-      x="T",
+      x="Date",
       y="Value"
     )
   p

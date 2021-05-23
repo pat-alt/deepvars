@@ -106,8 +106,8 @@ lags = 3
 Below the model is estimated in levels using `r lags` lags firstly through least-squares and secondly through MLE. 
 
 ```{r, echo=T}
-var_ls = VAR(dt, lags = lags, method = "ols")
-var_mle = VAR(dt, lags = lags, method = "mle")
+var_ls = vareg(dt, lags = lags, method = "ols")
+var_mle = vareg(dt, lags = lags, method = "mle")
 ```
 
 ### Stability condition
@@ -140,7 +140,7 @@ ggplot2::ggplot(chart_data) +
 Re-running the stability test with the transformed data shows that the var is now stable when using `r lags` lags:
 
 ```{r, echo=T}
-invisible(VAR_stable(VAR(dt, lag=3))$test_result)
+invisible(VAR_stable(vareg(dt, lag=3))$test_result)
 ```
 
 
@@ -157,7 +157,7 @@ lag = lag_selection$p
 suggesting that we should us $p=`r lag`$ as the AIC is minimized for that choice. The table below shows the resulting coefficients when re-running the VAR estimation through least-squares with differenced data and the proposed, optimal lag-length. 
 
 ```{r ls-diff-res, fig.dim=c(7,4), fig.cap="Coefficient estimates through least-squares after taking first differences."}
-varresult <- VAR(dt[,.SD,.SDcols=var_cols], lags = lags)
+varresult <- vareg(dt[,.SD,.SDcols=var_cols], lags = lags)
 print(varresult)
 ```
 

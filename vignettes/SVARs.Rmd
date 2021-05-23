@@ -50,7 +50,7 @@ DT::datatable(dt) %>%
 dt[,(var_cols) := lapply(.SD, function(i) c(0,diff(i))), .SDcols=var_cols]
 lag_selection = VAR_lag_select(dt[,.SD,.SDcols=var_cols])
 lags = lag_selection$p
-varresult = VAR(dt, lags = lags)
+varresult = vareg(dt, lags = lags)
 ```
 
 ### Impulse response functions

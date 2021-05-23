@@ -1,4 +1,4 @@
-#' VAR
+#' vareg
 #'
 #' @param data Data set
 #' @param lags Number of lags
@@ -10,7 +10,7 @@
 #'
 #' @author Patrick Altmeyer
 
-VAR = function(data, lags=1, method="ols", constant=TRUE, ci=.95, standardize=FALSE) {
+vareg <- function(data, lags=1, method="ols", constant=TRUE, ci=.95, standardize=FALSE) {
 
   var_data <- prepare_var_data(data, lags=lags, constant=constant, standardize = standardize)
   list2env(var_data, envir = environment()) # unpack VAR data

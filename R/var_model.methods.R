@@ -41,6 +41,14 @@ predict.var_model <- function(var_model, X=NULL) {
     measure.vars=var_model$model_data$var_names
   )
 
+  # Add date if possible:
+  if (is.null(X)) {
+    predictions[,date:=var_model$model_data$data[,date][1:(.N)],by=variable]
+  } else {
+    predictions[,date:=1:(.N),by=variable]
+  }
+  setcolorder(predictions, "date")
+
   # Return predictions:
   predictions <- list(
     predictions = predictions,

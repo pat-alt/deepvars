@@ -143,7 +143,7 @@ irf = function(
       }
 
       # STEP 3 - estimate VAR(p) for simulated data ----
-      varresult_star = VAR(Y_star,lags, constant = constant)
+      varresult_star = vareg(Y_star,lags, constant = constant)
 
       # STEP 4 - estimate IRF using new coefficients ----
       irf_star = compute_IRF(varresult = varresult_star,
