@@ -36,7 +36,10 @@ fitted <- function(var_model, X=NULL) {
 predict.var_model <- function(var_model, X=NULL) {
   # Compute predictions:
   y_hat <- fitted(var_model, X)
-  predictions <- data.table::melt(data.table::data.table(y_hat), measure.vars=var_model$model_data$var_names)
+  predictions <- data.table::melt(
+    data.table::data.table(y_hat),
+    measure.vars=var_model$model_data$var_names
+  )
 
   # Return predictions:
   predictions <- list(
@@ -53,67 +56,62 @@ predict <- function(var_model, X=NULL) {
   UseMethod("predict", var_model)
 }
 
+## loss: ----
+#' @export
+residuals.var_model <- function(var_model) {
+  res <- data.table::data.table(var_model$res)
+  res[,date:=var_model$model_data$data[,date][1:(.N)]]
+  res <- melt(res, id.vars="date")
+  return(res)
+}
+
 #' @export
 ## Mean squared error (MSE): ----
-mse.var_model <- function(var_model,X=NULL,y=NULL) {
+mse.var_model <- function(var_model) {
 
-  # Has X, y been supplied?
-  if (is.null(X) & is.null(y)) {
-    X <- var_model$X_train
-    y <- var_model$y_train
-  }
-
-  # Set up:
-  model_data <- var_model$model_data
-
-  # Predictions:
-  pred <- predict(var_model, X=X)
-  y_hat <- pred$predictions
-  y_hat[,type:="y_hat"]
-
-  # Observed values:
-  y_true <- data.table::data.table(y)
-  y_true[,type:="y_true"]
-  y_true <- melt(y_true, id.vars = "type")
-
-  # Compute MSE:
-  mse <- rbind(y_hat, y_true)
-  mse[,id:=1:(.N),by=.(variable, type)]
-  mse <- dcast(mse, variable + id ~ type, value.var="value")
-  mse <- mse[,.(mse=mean((y_hat-y_true)^2)),by=variable]
+  res <- residuals(var_model)
+  mse <- res[,.(value=mean((value)^2)),by=variable]
 
   return(mse)
 }
 
 #' @export
-mse <- function(var_model,X=NULL,y=NULL) {
+mse <- function(var_model) {
   UseMethod("mse", var_model)
 }
 
 #' @export
 ## Root mean squared error (RMSE): ----
-rmse.var_model <- function(var_model,X=NULL,y=NULL) {
+rmse.var_model <- function(var_model) {
 
-  # Has X, y been supplied?
-  if (is.null(X) & is.null(y)) {
-    X <- var_model$X_train
-    y <- var_model$y_train
-  }
-
-  # RMSE:
-  mse <- mse(var_model, X=X, y=y)
-  rmse <- mse[,.(rmse=sqrt(mse)),by=variable]
+  res <- residuals(var_model)
+  rmse <- res[,.(value=sqrt(mean((value)^2))),by=variable]
 
   return(rmse)
 }
 
 #' @export
-rmse <- function(var_model,X=NULL,y=NULL) {
+rmse <- function(var_model) {
   UseMethod("rmse", var_model)
 }
 
+## Cumulative loss: ----
 #' @export
+cum_loss.var_model <- function(var_model) {
+
+  res <- residuals(var_model)
+  cum_loss <- list(cum_loss = res[,.(date=date, value=cumsum(value^2)),by=variable])
+  class(cum_loss) <- "cum_loss"
+  return(cum_loss)
+}
+
+#' @export
+cum_loss <- function(var_model) {
+  UseMethod("cum_loss", var_model)
+}
+
 ## Forecasting: ----
+#' @export
 forecast.var_model <- function(var_model, n.ahead=1) {
 
   # Set up:
