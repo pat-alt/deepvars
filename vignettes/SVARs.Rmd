@@ -1,8 +1,8 @@
 ---
-title: "SVARs (`deepvars`)"
+title: "Structural VARs (`deepvars`)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{SVARs}
+  %\VignetteIndexEntry{svars}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

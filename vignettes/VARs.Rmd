@@ -2,7 +2,7 @@
 title: "VAR (`deepvars`)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{VARs}
+  %\VignetteIndexEntry{vars}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -157,15 +157,15 @@ lag = lag_selection$p
 suggesting that we should us $p=`r lag`$ as the AIC is minimized for that choice. The table below shows the resulting coefficients when re-running the VAR estimation through least-squares with differenced data and the proposed, optimal lag-length. 
 
 ```{r ls-diff-res, fig.dim=c(7,4), fig.cap="Coefficient estimates through least-squares after taking first differences."}
-varresult <- vareg(dt[,.SD,.SDcols=var_cols], lags = lags)
-print(varresult)
+var_model <- vareg(dt[,.SD,.SDcols=var_cols], lags = lags)
+print(var_model)
 ```
 
 We can also ...
 
 ```{r, fig.dim=c(7,4)}
-fitted_values <- predict(varresult)
-plot(fitted_values, y_true=varresult$y_train)
+fitted_values <- predict(var_model)
+plot(fitted_values, y_true=var_model$y_train)
 ```
 
 
@@ -183,7 +183,7 @@ Once the VAR has been fitted, it can be used for prediction.
 In R, we can predict from a model that has been estimated through `VAR` using the `VAR_predict` function. The figure below shows the `r n`-step ahead predictions for our model. 
 
 ```{r predict, fig.dim=c(7,4), fig.cap=fig_cap}
-fcst <- forecast(varresult, n)
+fcst <- forecast(var_model, n)
 plot(fcst)
-# my_pred = VAR_predict(varresult, n.ahead, plot = T, theme = theme_bw())
+# my_pred = VAR_predict(var_model, n.ahead, plot = T, theme = theme_bw())
 ```

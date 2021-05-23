@@ -2,15 +2,16 @@ prepare_var_data <- function(data, lags=1, constant=TRUE, standardize=FALSE) {
 
   # Set up: ----
   var_names <- colnames(data)[colnames(data)!="date"] # variable names excluding date
-  data_out <- data.table::copy(data) # save a copy of all data
-  data <- copy(data)
+  data <- data.table::as.data.table(data) # turn into data.table
   if ("date" %in% names(data)) {
     if (data[,class(date)[1]]!="Date") {
       warning("Date indexing is only implemented for date of class Date. Using simple integer index instead.")
       data[,date:=1:.N]
     }
+  } else {
+    data[,date:=1:.N]
   }
-  data <- data.table::as.data.table(data) # turn into data.table
+  data_out <- data.table::copy(data) # save a copy of all data
   data <- data[,.SD,.SDcols=var_names] # keep only model variables
   N <- nrow(data)-lags
   K <- ncol(data)

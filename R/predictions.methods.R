@@ -13,6 +13,7 @@ plot.predictions <- function(predictions, y_true=NULL) {
     y_true <- data.table::data.table(y_true)
     y_true[,type:="Actual"]
     y_true <- melt(y_true, id.vars = "type")
+    y_true[,date:=pred$date]
   }
   dt_plot <- rbind(pred,y_true)
   p <- ggplot(data=dt_plot, aes(x=date, y=value, colour=type)) +

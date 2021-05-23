@@ -27,10 +27,9 @@ fitted.var_model <- function(var_model, X=NULL) {
   return(y_hat)
 }
 
-#' @export
-fitted <- function(var_model, X=NULL) {
-  UseMethod("fitted", var_model)
-}
+# fitted <- function(var_model, X=NULL) {
+#   UseMethod("fitted", var_model)
+# }
 
 #' @export
 predict.var_model <- function(var_model, X=NULL) {
@@ -59,12 +58,11 @@ predict.var_model <- function(var_model, X=NULL) {
   return(predictions)
 }
 
-#' @export
-predict <- function(var_model, X=NULL) {
-  UseMethod("predict", var_model)
-}
+# predict <- function(var_model, X=NULL) {
+#   UseMethod("predict", var_model)
+# }
 
-## loss: ----
+## Loss: ----
 #' @export
 residuals.var_model <- function(var_model) {
   res <- data.table::data.table(var_model$res)

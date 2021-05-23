@@ -1,8 +1,8 @@
 ---
-title: "deep_vars"
+title: "Deep VARs"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{deep_vars}
+  %\VignetteIndexEntry{deepvars}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
