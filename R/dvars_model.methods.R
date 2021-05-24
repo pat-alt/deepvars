@@ -39,8 +39,8 @@ loss <- function(dvars_model) {
   UseMethod("loss", dvars_model)
 }
 
-#' @export
 ## Mean squared error (MSE): ----
+#' @export
 mse.dvars_model <- function(dvars_model) {
 
   res <- loss(dvars_model)
@@ -54,8 +54,8 @@ mse <- function(dvars_model) {
   UseMethod("mse", dvars_model)
 }
 
-#' @export
 ## Root mean squared error (RMSE): ----
+#' @export
 rmse.dvars_model <- function(dvars_model) {
 
   res <- loss(dvars_model)

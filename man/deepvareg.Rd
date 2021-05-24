@@ -4,7 +4,15 @@
 \alias{deepvareg}
 \title{Deep VAR}
 \usage{
-deepvareg(data, lags = 1, n_units = 50, horizon = 1, type = "var", ...)
+deepvareg(
+  data,
+  lags = 1,
+  n_units = 50,
+  horizon = 1,
+  type = "var",
+  verbose = 0,
+  ...
+)
 }
 \arguments{
 \item{type}{}

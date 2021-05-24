@@ -75,16 +75,16 @@ deepvar_model <- deepvareg(dt, lags=lags, n_units = 100, epochs=100)
 
 ### Predictions
 
-```{r, eval=FALSE}
+```{r}
 y_true <- var_model$y_train
 ```
 
-```{r, eval=FALSE, pred-var, fig.dim=c(7,4), fig.cap="Predictions from VAR."}
+```{r, pred-var, fig.dim=c(7,4), fig.cap="Predictions from VAR."}
 pred_var <- predict(var_model)
 plot(pred_var, y_true = y_true)
 ```
 
-```{r, eval=FALSE, pred-mlstm, fig.dim=c(7,4), fig.cap="Predictions from MLSTM."}
+```{r, pred-mlstm, fig.dim=c(7,4), fig.cap="Predictions from MLSTM."}
 pred_deepvar <- predict(deepvar_model)
 plot(pred_deepvar, y_true = y_true)
 ```
@@ -103,7 +103,7 @@ ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
 
 ### RMSE
 
-```{r, eval=FALSE}
+```{r}
 rmse_var <- rmse(var_model)[,model:="var"]
 rmse_deep_var <- rmse(deepvar_model)[,model:="deepvar"]
 tab_rmse <- rbind(rmse_var, rmse_deep_var)
