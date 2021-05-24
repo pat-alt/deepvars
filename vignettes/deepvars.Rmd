@@ -70,7 +70,7 @@ Fit the two models ...
 # VAR
 var_model <- vareg(dt, lags = lags)
 # Deep VAR
-deepvar_model <- deepvareg(dt, lags=lags, n_units = 100, epochs=150)
+deepvar_model <- deepvareg(dt, lags=lags, n_units = 100, epochs=100)
 ```
 
 ### Predictions
@@ -89,7 +89,19 @@ pred_deepvar <- predict(deepvar_model)
 plot(pred_deepvar, y_true = y_true)
 ```
 
-### MSE
+### Cumulative loss
+
+```{r}
+cum_loss_var <- cum_loss(var_model)$cum_loss[,type:="var"]
+cum_loss_dvar <- cum_loss(deepvar_model)$cum_loss[,type:="deepvar"]
+dt_plot <- rbind(cum_loss_dvar, cum_loss_var)
+ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
+  ggplot2::geom_line() +
+  ggplot2::facet_wrap(~variable, scales = "free_y")
+```
+
+
+### RMSE
 
 ```{r, eval=FALSE}
 rmse_var <- rmse(var_model)[,model:="var"]
@@ -98,7 +110,8 @@ tab_rmse <- rbind(rmse_var, rmse_deep_var)
 tab_rmse <- data.table::dcast(tab_rmse, variable ~ model, value.var = "value")
 knitr::kable(
   tab_rmse, 
-  col.names = c("Variable", "Deep VAR", "VAR")
+  col.names = c("Variable", "DVAR", "VAR"),
+  digits = 2
 ) 
 ```
 

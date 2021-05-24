@@ -27,7 +27,7 @@ predict.dvars_model <- function(dvars_model, X=NULL) {
 
 ## Loss: ----
 #' @export
-residuals.dvars_model <- function(dvars_model) {
+loss.dvars_model <- function(dvars_model) {
   res <- data.table::data.table(dvars_model$res)
   res[,date:=dvars_model$model_data$data[,date][1:(.N)]]
   res <- data.table::melt(res, id.vars="date")
@@ -35,10 +35,15 @@ residuals.dvars_model <- function(dvars_model) {
 }
 
 #' @export
+loss <- function(dvars_model) {
+  UseMethod("loss", dvars_model)
+}
+
+#' @export
 ## Mean squared error (MSE): ----
 mse.dvars_model <- function(dvars_model) {
 
-  res <- residuals(dvars_model)
+  res <- loss(dvars_model)
   mse <- res[,.(value=mean((value)^2)),by=variable]
 
   return(mse)
@@ -53,7 +58,7 @@ mse <- function(dvars_model) {
 ## Root mean squared error (RMSE): ----
 rmse.dvars_model <- function(dvars_model) {
 
-  res <- residuals(dvars_model)
+  res <- loss(dvars_model)
   rmse <- res[,.(value=sqrt(mean((value)^2))),by=variable]
 
   return(rmse)
@@ -68,7 +73,7 @@ rmse <- function(dvars_model) {
 #' @export
 cum_loss.dvars_model <- function(dvars_model) {
 
-  res <- residuals(dvars_model)
+  res <- loss(dvars_model)
   cum_loss <- list(cum_loss = res[,.(date=date, value=cumsum(value^2)),by=variable])
   class(cum_loss) <- "cum_loss"
   return(cum_loss)
