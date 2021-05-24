@@ -17,53 +17,55 @@ deepvareg <- function(data, lags=1, n_units=50, horizon=1, type="var", verbose=0
   deepvar_data <- prepare_deepvar_data(data, lags, horizon, type)
 
   # Prepare model:
-  K <- deepvar_data$K
-  dim_input <- dim(deepvar_data$X)[2:3]
-  model_list <- lapply(
-    1:K,
-    function(k) {
-      model <- keras::keras_model_sequential() %>%
-        keras::layer_lstm(units = n_units, input_shape = dim_input) %>%
-        keras::layer_dropout(0.5) %>%
-        keras::layer_dense(units = 1)
-      model %>%
-        keras::compile(
-          loss = "mae",
-          optimizer = "adam"
-        )
-      return(model)
-    }
-  )
-
-  deepvar_model <- list(
-    model_list = model_list,
-    model_data = deepvar_data
-  )
+  deepvar_model <- prepare_deepvar_model(deepvar_data, n_units=n_units)
+  # K <- deepvar_data$K
+  # dim_input <- dim(deepvar_data$X)[2:3]
+  # model_list <- lapply(
+  #   1:K,
+  #   function(k) {
+  #     model <- keras::keras_model_sequential() %>%
+  #       keras::layer_lstm(units = n_units, input_shape = dim_input) %>%
+  #       keras::layer_dropout(0.5) %>%
+  #       keras::layer_dense(units = 1)
+  #     model %>%
+  #       keras::compile(
+  #         loss = "mae",
+  #         optimizer = "adam"
+  #       )
+  #     return(model)
+  #   }
+  # )
+  #
+  # deepvar_model <- list(
+  #   model_list = model_list,
+  #   model_data = deepvar_data
+  # )
 
   # Fit the model:
-  X_train <- deepvar_model$model_data$X
-  y_train <- deepvar_model$model_data$y
-  fitted_models <- lapply(
-    1:K,
-    function(k) {
-      history <- deepvar_model$model_list[[k]] %>%
-        keras::fit(
-          x = X_train, y = y_train[,,k],
-          verbose = verbose,
-          ...
-        )
-      list(
-        model = deepvar_model$model_list[[k]],
-        history = history
-      )
-    }
-  )
-  deepvar_model$model_list <- lapply(fitted_models, function(fitted_model) fitted_model[["model"]]) # update model list
-  deepvar_model$model_histories <- lapply(fitted_models, function(fitted_model) fitted_model[["history"]]) # extract history
-  deepvar_model$X_train <- X_train
-  deepvar_model$y_train <- y_train
+  deepvar_model <- fit(deepvar_model, verbose=verbose, ...)
+  # X_train <- deepvar_model$model_data$X
+  # y_train <- deepvar_model$model_data$y
+  # fitted_models <- lapply(
+  #   1:K,
+  #   function(k) {
+  #     history <- deepvar_model$model_list[[k]] %>%
+  #       keras::fit(
+  #         x = X_train, y = y_train[,,k],
+  #         verbose = verbose,
+  #         ...
+  #       )
+  #     list(
+  #       model = deepvar_model$model_list[[k]],
+  #       history = history
+  #     )
+  #   }
+  # )
+  # deepvar_model$X_train <- X_train
+  # deepvar_model$y_train <- y_train
 
   # Fitted values:
+  X_train <- deepvar_model$X_train
+  y_train <- deepvar_model$y_train
   y_hat <- sapply(
     1:length(deepvar_model$model_list),
     function(k) {

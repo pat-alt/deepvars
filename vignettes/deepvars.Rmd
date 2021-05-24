@@ -70,7 +70,7 @@ Fit the two models ...
 # VAR
 var_model <- vareg(dt, lags = lags)
 # Deep VAR
-deepvar_model <- deepvareg(dt, lags=lags, n_units = 100, epochs=100)
+deepvar_model <- deepvareg(dt, lags=lags, n_units = 100, epochs=150)
 ```
 
 ### Predictions
@@ -85,8 +85,8 @@ plot(pred_var, y_true = y_true)
 ```
 
 ```{r, eval=FALSE, pred-mlstm, fig.dim=c(7,4), fig.cap="Predictions from MLSTM."}
-pred_mlstm <- predict(deepvar_model)
-plot(pred_mlstm, y_true = y_true)
+pred_deepvar <- predict(deepvar_model)
+plot(pred_deepvar, y_true = y_true)
 ```
 
 ### MSE
