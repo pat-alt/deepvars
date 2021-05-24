@@ -28,6 +28,22 @@ fitted.var_model <- function(var_model, X=NULL) {
 }
 
 #' @export
+residuals.var_model <- function(var_model, X=NULL, y=NULL) {
+
+  new_data <- new_data_supplied(X=X,y=y)
+
+  if (new_data | is.null(var_model$res)) {
+    y_hat <- fitted(var_model, X)
+    res <- y - y_hat
+  } else {
+    res <- var_model$res
+  }
+
+  return(res)
+
+}
+
+#' @export
 prepare_predictors.var_model <- function(var_model, data) {
 
   lags <- var_model$model_data$lags

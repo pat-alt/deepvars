@@ -4,7 +4,13 @@
 \alias{prepare_deepvar_model}
 \title{Deep VAR model setup}
 \usage{
-prepare_deepvar_model(deepvar_data, n_units = 50)
+prepare_deepvar_model(
+  deepvar_data,
+  num_units = 50,
+  num_layers = 2,
+  p_drop_out = 0.5,
+  optimizer = "adam"
+)
 }
 \arguments{
 \item{n_units}{}

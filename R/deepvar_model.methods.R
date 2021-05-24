@@ -46,6 +46,12 @@ fitted.deepvar_model <- function(deepvar_model, X=NULL) {
     if (is.null(X)) {
       X <- deepvar_model$X_train
     }
+    if (length(dim(X))!=3) {
+      if (all(X[,1]==1)) {
+        X <- X[,-1]
+      }
+      X <- keras::array_reshape(X, dim=c(dim(X)[1],1,dim(X)[2]))
+    }
     y_hat <- matrix(
       sapply(
         1:length(deepvar_model$model_list),
@@ -67,12 +73,22 @@ fitted.deepvar_model <- function(deepvar_model, X=NULL) {
 }
 
 #' @export
-residuals.deepvar_model <- function(deepvar_model) {
+residuals.deepvar_model <- function(deepvar_model, X=NULL, y=NULL) {
 
-  y_hat <- fitted(deepvar_model)
-  y <- keras::array_reshape(deepvar_model$y_train, dim=c(dim(deepvar_model$y_train)[1],dim(deepvar_model$y_train)[3]))
-  y <- invert_scaling(y, deepvar_model$model_data)
-  res <- y - y_hat
+  new_data <- new_data_supplied(X=X,y=y)
+
+  if (new_data | is.null(deepvar_model$res)) {
+    if (!new_data) {
+      X <- deepvar_model$X_train
+      y <- deepvar_model$y_train
+    }
+    y_hat <- fitted(deepvar_model, X=X)
+    y <- keras::array_reshape(y, dim=c(dim(y)[1],dim(y)[3]))
+    y <- invert_scaling(y, deepvar_model$model_data)
+    res <- y - y_hat
+  } else {
+    res <- deepvar_model$res
+  }
 
   return(res)
 
