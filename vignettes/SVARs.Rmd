@@ -2,7 +2,7 @@
 title: "Structural VARs (`deepvars`)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{svars}
+  %\VignetteIndexEntry{Structural VARs (`deepvars`)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -45,8 +45,7 @@ We will consider the following example data set:
 ```{r example-data}
 dt = data.table::data.table(deepvars::canada)
 var_cols = colnames(dt)[2:ncol(dt)]
-DT::datatable(dt) %>%
-  DT::formatRound(columns = 1:ncol(dt))
+print(head(dt))
 dt[,(var_cols) := lapply(.SD, function(i) c(0,diff(i))), .SDcols=var_cols]
 lag_selection = VAR_lag_select(dt[,.SD,.SDcols=var_cols])
 lags = lag_selection$p

@@ -14,7 +14,7 @@ plot.forecast <- function(forecast, history=NULL) {
   }
   fcst <- forecast$fcst[,type:="Forecast"]
   dt_plot <- rbind(sample,fcst)
-  dt_plot <- melt(dt_plot, id.vars = c("date","type"))
+  dt_plot <- data.table::melt(dt_plot, id.vars = c("date","type"))
   if (!is.null(history)) {
     increment_date <- ifelse(sample[,class(date)=="Date"], round(sample[,mean(diff(date))]), 1)
     dt_plot <- dt_plot[date >= sample[,max(date)]-history*increment_date]

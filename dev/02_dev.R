@@ -15,6 +15,7 @@
 
 ## Dependencies ----
 ## Add one line by package you want to add as dependency
+usethis::use_package("keras", min_version = T)
 usethis::use_package("data.table", min_version = T)
 usethis::use_package("readr", min_version = T)
 usethis::use_package("gridExtra", min_version = T)

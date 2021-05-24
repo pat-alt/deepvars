@@ -9,7 +9,6 @@
 #' @export
 #'
 #' @author Patrick Altmeyer
-
 vareg <- function(data, lags=1, method="ols", constant=TRUE, ci=.95, standardize=FALSE) {
 
   var_data <- prepare_var_data(data, lags=lags, constant=constant, standardize = standardize)
@@ -131,7 +130,7 @@ vareg <- function(data, lags=1, method="ols", constant=TRUE, ci=.95, standardize
     coeff_tidy = coeff_tidy,
     model_data = var_data
   )
-  class(var_model) <- "var_model"
+  class(var_model) <- c("var_model", "dvars_model")
 
   return(var_model)
 }

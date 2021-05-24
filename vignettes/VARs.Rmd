@@ -1,8 +1,8 @@
 ---
-title: "VAR (`deepvars`)"
+title: "VARs (`deepvars`)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{vars}
+  %\VignetteIndexEntry{VARs (`deepvars`)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -78,8 +78,7 @@ The `VAR` function can be used to estimate the VAR by least-squares or MLE. All 
 ```{r example-data}
 dt = data.table::data.table(deepvars::canada)
 var_cols = colnames(dt)[2:ncol(dt)]
-DT::datatable(dt) %>%
-  DT::formatRound(columns = 1:ncol(dt))
+print(head(dt))
 ```
 
 The underlying time series in levels look non-stationary 
