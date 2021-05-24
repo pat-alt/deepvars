@@ -7,7 +7,7 @@ print.forecast <- function(forecast) {
 plot.forecast <- function(forecast, history=NULL) {
 
   K <- forecast$model_data$K
-  sample <- copy(forecast$model_data$data)
+  sample <- data.table::copy(forecast$model_data$data)
   sample[,type:="Actual"]
   if (!"date" %in% names(sample)) {
     sample[,date:=1:.N]
@@ -22,9 +22,9 @@ plot.forecast <- function(forecast, history=NULL) {
 
   p <- ggplot2::ggplot(data=dt_plot) +
     ggplot2::geom_line(ggplot2::aes(x=date, y=value, linetype=type)) +
-    facet_wrap(.~variable, nrow = K, scales = "free_y") +
-    scale_linetype_discrete(name="Type:") +
-    labs(
+    ggplot2::facet_wrap(.~variable, nrow = K, scales = "free_y") +
+    ggplot2::scale_linetype_discrete(name="Type:") +
+    ggplot2::labs(
       x="Date",
       y="Value"
     )

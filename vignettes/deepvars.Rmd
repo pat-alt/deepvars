@@ -10,7 +10,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  warning = FALSE
 )
 ```
 
@@ -91,7 +92,7 @@ plot(pred_deepvar, y_true = y_true)
 
 ### Cumulative loss
 
-```{r}
+```{r, cum-loss, fig.dim=c(7,4), fig.cap="Comparison of cumulative loss for the two models."}
 cum_loss_var <- cum_loss(var_model)$cum_loss[,type:="var"]
 cum_loss_dvar <- cum_loss(deepvar_model)$cum_loss[,type:="deepvar"]
 dt_plot <- rbind(cum_loss_dvar, cum_loss_var)
@@ -115,5 +116,15 @@ knitr::kable(
 ) 
 ```
 
+### Forecasts
 
+```{r, fcst-var, fig.dim=c(7,4), fig.cap="Forecasts from VAR."}
+fcst_var <- forecast(var_model, n.ahead = 50)
+plot(fcst_var)
+```
+
+```{r, fcst-dvar, fig.dim=c(7,4), fig.cap="Forecasts from Deep VAR."}
+fcst_dvar <- forecast(deepvar_model, n.ahead = 50)
+plot(fcst_dvar)
+```
 

@@ -46,15 +46,18 @@ fitted.deepvar_model <- function(deepvar_model, X=NULL) {
     if (is.null(X)) {
       X <- deepvar_model$X_train
     }
-    y_hat <- sapply(
-      1:length(deepvar_model$model_list),
-      function(k) {
-        mod <- deepvar_model$model_list[[k]]
-        y_hat <- mod %>%
-          stats::predict(X)
-        y_hat <- invert_scaling(y_hat, deepvar_model$model_data, k=k)
-        return(unlist(y_hat))
-      }
+    y_hat <- matrix(
+      sapply(
+        1:length(deepvar_model$model_list),
+        function(k) {
+          mod <- deepvar_model$model_list[[k]]
+          y_hat <- mod %>%
+            stats::predict(X)
+          y_hat <- invert_scaling(y_hat, deepvar_model$model_data, k=k)
+          return(unlist(y_hat))
+        }
+      ),
+      ncol = deepvar_model$model_data$K
     )
     rownames(y_hat) <- NULL
     colnames(y_hat) <- deepvar_model$model_data$var_names
@@ -74,3 +77,33 @@ residuals.deepvar_model <- function(deepvar_model) {
   return(res)
 
 }
+
+#' @export
+prepare_predictors.deepvar_model <- function(deepvar_model, data) {
+
+  lags <- deepvar_model$model_data$lags
+
+  # Explanatory variables:
+  X = as.matrix(
+    data[
+      (.N-(lags-1)):.N, # take last p rows
+      sapply(
+        0:(lags-1),
+        function(lag) {
+          data.table::shift(.SD, lag)
+        }
+      )
+      ][.N,] # take last row of that
+  )
+
+  X <- keras::array_reshape(X, dim = c(1,1,ncol(X)))
+
+  return(X)
+
+}
+
+#' @export
+prepare_predictors <- function(deepvar_model, data) {
+  UseMethod("prepare_predictors", deepvar_model)
+}
+
