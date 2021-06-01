@@ -24,14 +24,8 @@ prepare_test_data.train_test_split <- function(train_test_split, lags) {
 
   test_data <- train_test_split$data[(train_test_split$n_train+1-lags):.N,]
 
-  # VAR:
-  X_test_var <- prepare_var_data(test_data, lags)$X
-  y_test_var <- prepare_var_data(test_data, lags)$y
-
-  # Deep VAR:
-  # ! For Deep VAR test data needs to be scaled just like train data !
-  X_test_deepvar <- prepare_deepvar_data(test_data, lags)$X
-  y_test_deepvar <- prepare_deepvar_data(test_data, lags)$y
+  X_test <- prepare_var_data(test_data, lags)$X
+  y_test <- prepare_var_data(test_data, lags)$y
 
   return(
     list(
