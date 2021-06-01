@@ -46,11 +46,20 @@ fitted.deepvar_model <- function(deepvar_model, X=NULL) {
     if (is.null(X)) {
       X <- deepvar_model$X_train
     }
-    if (length(dim(X))!=3) {
+    if (length(dim(X))<3) {
+      # ! If new data is not 3D tensor, assume that unscaled 2D tensor was supplied !
+      # Get rid of constant:
       if (all(X[,1]==1)) {
         X <- X[,-1]
       }
+      # Apply scaling:
+      scaler <- deepvar_model$model_data$scaler
+      lags <- deepvar_model$model_data$lags
+      K <- deepvar_model$model_data$K
+      X <- apply_scaler_from_training(X, scaler, lags, K)
+      # Reshape:
       X <- keras::array_reshape(X, dim=c(dim(X)[1],1,dim(X)[2]))
+
     }
     y_hat <- matrix(
       sapply(
@@ -59,6 +68,7 @@ fitted.deepvar_model <- function(deepvar_model, X=NULL) {
           mod <- deepvar_model$model_list[[k]]
           y_hat <- mod %>%
             stats::predict(X)
+          # Rescale data:
           y_hat <- invert_scaling(y_hat, deepvar_model$model_data, k=k)
           return(unlist(y_hat))
         }

@@ -20,7 +20,8 @@ prepare_var_data <- function(data, lags=1, constant=TRUE, standardize=FALSE) {
   if (standardize) {
     scaler <- list(
       means = data[,lapply(.SD, mean),.SDcols=var_names],
-      sd = data[,lapply(.SD, sd),.SDcols=var_names]
+      sd = data[,lapply(.SD, sd),.SDcols=var_names],
+      fun = "normalize"
     )
     data[,(var_names):=lapply(.SD, function(i) {(i-mean(i))/sd(i)}),.SDcols=var_names]
   } else {
