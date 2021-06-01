@@ -62,7 +62,7 @@ ggplot2::ggplot(chart_data) +
 Splitting data into a training and test sample ...
 
 ```{r}
-train_test_split <- split(dt)
+train_test_split <- split_sample(dt)
 train_data <- train_test_split$train_data
 ```
 

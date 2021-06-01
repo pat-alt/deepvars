@@ -1,5 +1,5 @@
 #' @export
-split <- function(data, ratio_train=0.8, n_train=NULL, end_training=NULL) {
+split_sample <- function(data, ratio_train=0.8, n_train=NULL, end_training=NULL) {
 
   if (is.null(n_train) & is.null(end_training)) {
     n_train <- floor(ratio_train * nrow(data))
