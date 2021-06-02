@@ -81,7 +81,7 @@ var_model <- vareg(train_data, lags = lags)
 deepvar_model <- deepvareg(train_data, lags=lags, num_units = 100, epochs=100)
 ```
 
-### Predictions
+### 1-step ahead predictions
 
 #### In-sample
 
@@ -117,7 +117,7 @@ pred_dvar <- predict(deepvar_model, X=X_test)
 plot(pred_dvar, y_true = y_test)
 ```
 
-### Cumulative loss
+#### Cumulative loss
 
 ```{r, cum-loss, fig.dim=c(7,4), fig.cap="Comparison of cumulative loss for the two models."}
 cum_loss_var <- cum_loss(var_model)$cum_loss[,type:="var"]
@@ -134,7 +134,7 @@ ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
 ```
 
 
-### RMSE
+#### RMSE
 
 ```{r}
 rmse_var <- rbind(
@@ -150,19 +150,57 @@ tab_rmse <- data.table::dcast(tab_rmse, sample + variable ~ model, value.var = "
 knitr::kable(
   tab_rmse, 
   col.names = c("Sample", "Variable", "DVAR", "VAR"),
-  digits = 2
+  digits = 5
 ) 
 ```
 
-### Forecasts
+### h-step ahead forecasts
+
+#### Charts
 
 ```{r, fcst-var, fig.dim=c(7,4), fig.cap="Forecasts from VAR."}
-fcst_var <- forecast(var_model, n.ahead = 50)
-plot(fcst_var)
+n_ahead <- nrow(y_test)
+fcst_var <- forecast(var_model, n.ahead = n_ahead)
+plot(fcst_var, y_true = y_test)
 ```
 
 ```{r, fcst-dvar, fig.dim=c(7,4), fig.cap="Forecasts from Deep VAR."}
-fcst_dvar <- forecast(deepvar_model, n.ahead = 50)
-plot(fcst_dvar)
+fcst_dvar <- forecast(deepvar_model, n.ahead = n_ahead)
+plot(fcst_dvar, y_true = y_test)
 ```
+
+#### RMSFE 
+
+In terms of the Root Mean Squared Forecasting Error the Deep VAR is clearly dominating:
+
+```{r}
+tab_rmsfe <- rbind(
+  rmsfe(fcst_var, y_true=y_test)[,model:="VAR"],
+  rmsfe(fcst_dvar, y_true=y_test)[,model:="DVAR"]
+)
+tab_rmsfe <- data.table::dcast(tab_rmsfe, variable ~ model, value.var = "value")
+knitr::kable(
+  tab_rmsfe, 
+  col.names = c("Variable", "DVAR", "VAR"),
+  digits = 5
+) 
+```
+
+#### Correlations
+
+With respect to correlations between forecasts and actual outcomes there is no clear winner. The VAR appear to perform better for unemployment `U`, while the Deep VAR clearly dominates for production `prod`.
+
+```{r}
+tab_cor_fcst <- rbind(
+  cor_fcst(fcst_var, y_true=y_test)[,model:="VAR"],
+  cor_fcst(fcst_dvar, y_true=y_test)[,model:="DVAR"]
+)
+tab_cor_fcst <- data.table::dcast(tab_cor_fcst, variable ~ model, value.var = "value")
+knitr::kable(
+  tab_cor_fcst, 
+  col.names = c("Variable", "DVAR", "VAR"),
+  digits = 5
+) 
+```
+
 

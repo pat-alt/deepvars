@@ -96,7 +96,7 @@ forecast.dvars_model <- function(dvars_model, n.ahead=1) {
   if (!"date" %in% names(sample)) {
     sample[,date:=1:.N]
   }
-  fcst <- data.table::data.table()
+  fcst <- data.table::copy(sample[.N,])
   data <- rbind(sample, fcst)
   counter <- 1
   increment_date <- ifelse(
@@ -107,7 +107,7 @@ forecast.dvars_model <- function(dvars_model, n.ahead=1) {
 
   # Forecast recursively:
   while(counter <= n.ahead) {
-    X <<- prepare_predictors(dvars_model, data[,.SD,.SDcols=var_names])
+    X <- prepare_predictors(dvars_model, data[,.SD,.SDcols=var_names])
     y_hat <- predict(dvars_model, X)
 
     # Update
