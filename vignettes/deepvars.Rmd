@@ -69,7 +69,7 @@ train_data <- train_test_split$train_data
 Select lag length ...
 
 ```{r}
-lags <- VAR_lag_select(train_data[,.SD,.SDcols=var_cols])$p
+lags <- lag_order(train_data[,.SD,.SDcols=var_cols], max_lag = 12)$p
 ```
 
 Fit the two models ...

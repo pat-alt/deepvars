@@ -1,4 +1,4 @@
-#' VAR_lag_select
+#' lag_order
 #'
 #' @param data
 #' @param max_lag
@@ -9,20 +9,31 @@
 #' @return
 #' @export
 #'
-VAR_lag_select = function(data, max_lag=10, ic_choice="AIC") {
+lag_order <- function(data, max_lag=10, ic_choice="AIC", type="const") {
 
-  # Run loop ----
+  # Preparing same sample for each fit:
+  var_data <- prepare_var_data(data, lags = max_lag)
+  N <- var_data$N
+  y <- var_data$y
+  X <- var_data$X
+  K <- var_data$K
+  constant <- var_data$constant
+  lag_idx <- seq(K, K * max_lag, K) + constant
+
+  # Recursion: ----
   output <- lapply(
     1:max_lag,
     function(m) {
-      var_model <- vareg(data, lags=m)
-      N <- var_model$model_data$N
-      K <- var_model$model_data$K
-      res <- var_model$res
-      Sigma_res = crossprod(res)/N
-      AIC = log(det(Sigma_res)) + (2/N) * ((K ** 2) * m + K) # Akaike
-      HQC = log(det(Sigma_res)) + ((2 * log(log(N))) / N) * ((K ** 2) * m + K) # Hannan-Quinn
-      SIC = log(det(Sigma_res)) + (log(N)/(N)) * ((K ** 2) * m + K) # Schwarze/Bayes
+
+      # Fit model:
+      X_temp <- X[,1:lag_idx[m]] # use only past m lags
+      res <- lm.fit(x=X_temp, y=y)$residuals
+      Sigma_res <- crossprod(res)/N
+
+      # Compute criteria:
+      AIC = log(det(Sigma_res)) + (2/N) * (K^2 * m + K) # Akaike
+      HQC = log(det(Sigma_res)) + ((2 * log(log(N))) / N) * (K^2 * m + K) # Hannan-Quinn
+      SIC = log(det(Sigma_res)) + (log(N)/(N)) * (K^2 * m + K) # Schwarze/Bayes
       criteria = data.table::data.table(
         m = m,
         SIC = SIC,
@@ -33,14 +44,12 @@ VAR_lag_select = function(data, max_lag=10, ic_choice="AIC") {
     }
   )
 
-  # Bundle output ----
+  # Output: ----
   criteria_overview = data.table::rbindlist(output)
   proposed_lag_lengths = data.table::melt(criteria_overview, id.vars="m", variable.name = "ic")
   proposed_lag_lengths[,min:=min(value, na.rm=T), by="ic"]
   proposed_lag_lengths[,lag:=which.min(value), by="ic"]
   proposed_lag_lengths = proposed_lag_lengths[,unique(.SD),.SDcols = c("ic", "min", "lag")]
-
-  # Lag given choice of information criterium ----
   p = proposed_lag_lengths[ic==ic_choice, lag]
 
   return(

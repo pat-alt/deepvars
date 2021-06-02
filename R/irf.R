@@ -13,7 +13,7 @@
 #'
 #' @author Patrick Altmeyer
 
-irf = function(
+irf <- function(
   varresult,
   imp,
   structural = T,
@@ -124,7 +124,7 @@ irf = function(
 
       # STEP 2 - simulate VAR(p) recursively
       # Initialization
-      Y_star = y[1:lags,] # pre-sample values actually realized
+      Y_star <- matrix(y[1:lags,],ncol=K) # pre-sample values actually realized
 
       # Recursion
       for (i in 1:nrow(res_star)) {
