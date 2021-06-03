@@ -1,7 +1,7 @@
 # Mean orecasting error: ----
 #' @export
 msfe.forecast <- function(forecast, y_true) {
-  msfe <- colMeans(forecast$fcst[-1,(y_test-.SD)^2,.SDcols=colnames(y_test)])
+  msfe <- colMeans(forecast$fcst[-1,(y_true-.SD)^2,.SDcols=colnames(y_true)])
   msfe <- data.table::data.table(value=msfe, variable=names(msfe))
   return(msfe)
 }
@@ -14,7 +14,7 @@ msfe <- function(forecast, y_true) {
 # Root mean forecasting error: ----
 #' @export
 rmsfe.forecast <- function(forecast, y_true) {
-  rmsfe <- sqrt(colMeans(forecast$fcst[-1,(y_test-.SD)^2,.SDcols=colnames(y_test)]))
+  rmsfe <- sqrt(colMeans(forecast$fcst[-1,(y_true-.SD)^2,.SDcols=colnames(y_true)]))
   rmsfe <- data.table::data.table(value=rmsfe, variable=names(rmsfe))
   return(rmsfe)
 }
@@ -27,11 +27,11 @@ rmsfe <- function(forecast, y_true) {
 # Forecast correlations: ----
 #' @export
 cor_fcst.forecast <- function(forecast, y_true) {
-  var_names <- colnames(y_test)
+  var_names <- colnames(y_true)
   cor_fcst <- sapply(
     var_names,
     function(var) {
-      cor(forecast$fcst[-1,get(var)],y_test[,var])
+      cor(forecast$fcst[-1,get(var)],y_true[,var])
     }
   )
   cor_fcst <- data.table::data.table(value=cor_fcst, variable=names(cor_fcst))
