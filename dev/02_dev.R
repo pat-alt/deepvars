@@ -30,6 +30,8 @@ usethis::use_package("expm", min_version = T)
 usethis::use_package("tidyr", min_version = T)
 usethis::use_package("lattice", min_version = T)
 usethis::use_package("testthat", "Suggests", min_version = T)
+usethis::use_package("rmarkdown")
+usethis::use_package("knitr")
 
 ## Tests ----
 ## Add one line by test you want to create
