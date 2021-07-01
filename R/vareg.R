@@ -21,7 +21,7 @@ vareg <- function(data, lags=1, method="ols", constant=TRUE, ci=.95, standardize
     A = solve(crossprod(X), crossprod(X,y)) # coefficients
     y_hat = X %*% A
     res = y - y_hat # residuals
-    Sigma_res = crossprod(res)/(N-K*lags-constant) # vcov of residuals
+    Sigma_res = crossprod(res)/df # vcov of residuals
     Sigma_A = kronecker(chol2inv(chol(crossprod(X))), Sigma_res) # vcov of coefficients
     se = matrix(sqrt(diag(Sigma_A)), nrow = (constant + lags * K), byrow = T) # standard errors
     colnames(se) = colnames(A)

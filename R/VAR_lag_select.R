@@ -1,4 +1,4 @@
-#' VAR_lag_select
+#' lag_order
 #'
 #' @param data
 #' @param max_lag
@@ -9,58 +9,47 @@
 #' @return
 #' @export
 #'
-VAR_lag_select = function(data, max_lag=10, ic_choice="AIC") {
+lag_order <- function(data, max_lag=10, ic_choice="AIC", type="const") {
 
-  # Run loop ----
-  output = lapply(1:max_lag, function(i) {
+  # Preparing same sample for each fit:
+  var_data <- prepare_var_data(data, lags = max_lag)
+  N <- var_data$N
+  y <- var_data$y
+  X <- var_data$X
+  K <- var_data$K
+  constant <- var_data$constant
+  lag_idx <- seq(K, K * max_lag, K) + constant
 
-    lag = i
+  # Recursion: ----
+  output <- lapply(
+    1:max_lag,
+    function(m) {
 
-    # Preprocessing ----
-    N = nrow(data)-lag
-    K = ncol(data)
-    var_names = colnames(data)
-    data_out = data.table::as.data.table(data)
-    # Data and lags:
-    data_out[,(c(sapply(1:lag, function(p) sprintf("%s_l%i", var_names, p)))) := sapply(1:lag, function(p) data.table::shift(.SD, p))]
-    # Dependent variable:
-    Y = as.matrix(data_out[(lag+1):.N,1:K])
-    # Explanatory variables:
-    Z = cbind("constant"=1,as.matrix(data_out[(lag+1):.N,(K+1):ncol(data_out)]))
+      # Fit model:
+      X_temp <- X[,1:lag_idx[m]] # use only past m lags
+      res <- lm.fit(x=X_temp, y=y)$residuals
+      Sigma_res <- crossprod(res)/N
 
-    # Least-squares estimation ----
-    A = try(solve(crossprod(Z), crossprod(Z,Y)))
+      # Compute criteria:
+      AIC = log(det(Sigma_res)) + (2/N) * (K^2 * m + K) # Akaike
+      HQC = log(det(Sigma_res)) + ((2 * log(log(N))) / N) * (K^2 * m + K) # Hannan-Quinn
+      SIC = log(det(Sigma_res)) + (log(N)/(N)) * (K^2 * m + K) # Schwarze/Bayes
+      criteria = data.table::data.table(
+        m = m,
+        SIC = SIC,
+        HQC = HQC,
+        AIC = AIC
+      )
 
-    if (class(A)!="try-error") {
-      res = Y - Z %*% A
-      Sigma_res = crossprod(res)/(N-1)
-
-      # Information criteria ----
-      AIC = log(det(Sigma_res)) + (2/(N-lag)) * ((K ** 2) * lag + K) # Akaike
-      HQC = log(det(Sigma_res)) + (2 * log(log(N-lag)) /(N-lag)) * ((K ** 2) * lag + K) # Hannan-Quinn
-      BIC = log(det(Sigma_res)) + (log(N-lag)/(N-lag)) * ((K ** 2) * lag + K) # Schwarze/Bayes
-      criteria = data.table::data.table(m = lag,
-                            BIC = BIC,
-                            HQC = HQC,
-                            AIC = AIC)
-    } else {
-      criteria = data.table::data.table(m=lag,
-                            BIC=NA,
-                            HQC=NA,
-                            AIC=NA)
     }
+  )
 
-
-  })
-
-  # Bundle output ----
+  # Output: ----
   criteria_overview = data.table::rbindlist(output)
   proposed_lag_lengths = data.table::melt(criteria_overview, id.vars="m", variable.name = "ic")
   proposed_lag_lengths[,min:=min(value, na.rm=T), by="ic"]
   proposed_lag_lengths[,lag:=which.min(value), by="ic"]
   proposed_lag_lengths = proposed_lag_lengths[,unique(.SD),.SDcols = c("ic", "min", "lag")]
-
-  # Lag given choice of information criterium ----
   p = proposed_lag_lengths[ic==ic_choice, lag]
 
   return(

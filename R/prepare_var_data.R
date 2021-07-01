@@ -20,7 +20,8 @@ prepare_var_data <- function(data, lags=1, constant=TRUE, standardize=FALSE) {
   if (standardize) {
     scaler <- list(
       means = data[,lapply(.SD, mean),.SDcols=var_names],
-      sd = data[,lapply(.SD, sd),.SDcols=var_names]
+      sd = data[,lapply(.SD, sd),.SDcols=var_names],
+      fun = "normalize"
     )
     data[,(var_names):=lapply(.SD, function(i) {(i-mean(i))/sd(i)}),.SDcols=var_names]
   } else {
@@ -28,26 +29,33 @@ prepare_var_data <- function(data, lags=1, constant=TRUE, standardize=FALSE) {
   }
 
   # Reshape:
-  new_names <- c(sapply(1:lags, function(p) sprintf("%s_l%i", var_names, p)))
-  data[
-    ,
-    (new_names) := sapply(
-      1:lags,
-      function(lag) {
-        data.table::shift(.SD, lag)
-      }
-    )
-  ]
-  # Dependent variable:
-  y = as.matrix(data[(lags+1):.N,1:K])
-  # Explanatory variables:
-  if (constant==T) {
-    const = 1
-    X = cbind("constant"=1,as.matrix(data[(lags+1):.N,(K+1):ncol(data)]))
-  } else {
-    const = 0
-    X = as.matrix(data[(lags+1):.N,(K+1):ncol(data)])
+  y <- as.matrix(data[(lags+1):.N,1:K])
+  X <- embed(as.matrix(data), lags+1)[,-c(1:K)]
+  colnames(X) <- c(sapply(1:lags, function(p) sprintf("%s_l%i", var_names, p)))
+  if (constant) {
+    X <- cbind("constant"=1,X)
   }
+
+  # new_names <- c(sapply(1:lags, function(p) sprintf("%s_l%i", var_names, p)))
+  # data[
+  #   ,
+  #   (new_names) := sapply(
+  #     1:lags,
+  #     function(lag) {
+  #       data.table::shift(.SD, lag)
+  #     }
+  #   )
+  # ]
+  # # Dependent variable:
+  # y = as.matrix(data[(lags+1):.N,1:K])
+  # # Explanatory variables:
+  # if (constant==T) {
+  #   const = 1
+  #   X = cbind("constant"=1,as.matrix(data[(lags+1):.N,(K+1):ncol(data)]))
+  # } else {
+  #   const = 0
+  #   X = as.matrix(data[(lags+1):.N,(K+1):ncol(data)])
+  # }
 
   # Output:
   var_data <- list(
@@ -58,7 +66,8 @@ prepare_var_data <- function(data, lags=1, constant=TRUE, standardize=FALSE) {
     N=N,
     var_names=var_names,
     scaler=scaler,
-    data=data_out
+    data=data_out,
+    constant=constant
   )
   class(var_data) <- "var_data"
 

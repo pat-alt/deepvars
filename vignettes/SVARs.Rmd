@@ -47,7 +47,7 @@ dt = data.table::data.table(deepvars::canada)
 var_cols = colnames(dt)[2:ncol(dt)]
 print(head(dt))
 dt[,(var_cols) := lapply(.SD, function(i) c(0,diff(i))), .SDcols=var_cols]
-lag_selection = VAR_lag_select(dt[,.SD,.SDcols=var_cols])
+lag_selection = lag_order(dt[,.SD,.SDcols=var_cols])
 lags = lag_selection$p
 varresult = vareg(dt, lags = lags)
 ```

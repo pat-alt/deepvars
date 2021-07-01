@@ -1,13 +1,60 @@
+# Mean orecasting error: ----
+#' @export
+msfe.forecast <- function(forecast, y_true) {
+  msfe <- colMeans(forecast$fcst[-1,(y_true-.SD)^2,.SDcols=colnames(y_true)])
+  msfe <- data.table::data.table(value=msfe, variable=names(msfe))
+  return(msfe)
+}
+
+#' @export
+msfe <- function(forecast, y_true) {
+  UseMethod("msfe", forecast)
+}
+
+# Root mean forecasting error: ----
+#' @export
+rmsfe.forecast <- function(forecast, y_true) {
+  rmsfe <- sqrt(colMeans(forecast$fcst[-1,(y_true-.SD)^2,.SDcols=colnames(y_true)]))
+  rmsfe <- data.table::data.table(value=rmsfe, variable=names(rmsfe))
+  return(rmsfe)
+}
+
+#' @export
+rmsfe <- function(forecast, y_true) {
+  UseMethod("rmsfe", forecast)
+}
+
+# Forecast correlations: ----
+#' @export
+cor_fcst.forecast <- function(forecast, y_true) {
+  var_names <- colnames(y_true)
+  cor_fcst <- sapply(
+    var_names,
+    function(var) {
+      cor(forecast$fcst[-1,get(var)],y_true[,var])
+    }
+  )
+  cor_fcst <- data.table::data.table(value=cor_fcst, variable=names(cor_fcst))
+  return(cor_fcst)
+}
+
+#' @export
+cor_fcst <- function(forecast, y_true) {
+  UseMethod("cor_fcst", forecast)
+}
+
+# Print, plot, ... ----
 #' @export
 print.forecast <- function(forecast) {
   print(forecast$fcst)
 }
 
 #' @export
-plot.forecast <- function(forecast, history=NULL) {
+plot.forecast <- function(forecast, y_true=NULL, history=NULL) {
 
+  # Forecasts
   K <- forecast$model_data$K
-  sample <- copy(forecast$model_data$data)
+  sample <- data.table::copy(forecast$model_data$data)
   sample[,type:="Actual"]
   if (!"date" %in% names(sample)) {
     sample[,date:=1:.N]
@@ -20,11 +67,22 @@ plot.forecast <- function(forecast, history=NULL) {
     dt_plot <- dt_plot[date >= sample[,max(date)]-history*increment_date]
   }
 
+  # True outcomes:
+  if (!is.null(y_true)) {
+    y_true <- data.table::data.table(y_true)
+    y_true[,date:=fcst$date[-1]]
+    y_true[,type:="Actual"]
+    # y_true <- rbind(sample[.N,],y_true)
+    y_true <- data.table::melt(y_true, id.vars = c("date","type"))
+    dt_plot <- rbind(dt_plot,y_true)
+  }
+
+
   p <- ggplot2::ggplot(data=dt_plot) +
     ggplot2::geom_line(ggplot2::aes(x=date, y=value, linetype=type)) +
-    facet_wrap(.~variable, nrow = K, scales = "free_y") +
-    scale_linetype_discrete(name="Type:") +
-    labs(
+    ggplot2::facet_wrap(.~variable, nrow = K, scales = "free_y") +
+    ggplot2::scale_linetype_discrete(name="Type:") +
+    ggplot2::labs(
       x="Date",
       y="Value"
     )
