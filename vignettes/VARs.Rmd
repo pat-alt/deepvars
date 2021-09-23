@@ -11,7 +11,6 @@ vignette: >
 library(deepvars)
 
 # Dependencies
-library(tidyr)
 library(data.table)
 library(ggplot2)
 library(expm)
@@ -19,9 +18,9 @@ library(expm)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  echo=F,
-  warning = F, 
-  message = F
+  echo=FALSE,
+  warning = FALSE, 
+  message = FALSE
 )
 ```
 

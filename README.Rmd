@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 # `deepvars`
 
-The goal of `deepvars` is to provide an accessible and scalable framework ...
+The `deepvars` package provides a framework for Deep Vector Autoregression in R. The methodology is based on [Agusti, Altmeyer and Vidal-Quadras Costa (2021)](Vidal-Quadras Costa) - a working paper initially prepared as part of the [Masters Degree in Data Science](https://bse.eu/study/masters-programs/data-science-methodology) at [Barcelona School of Economics](https://bse.eu). For a summary of the current version of the working paper see [here](https://thevoice.bse.eu/2021/09/16/deep-vector-autoregression-for-macroeconomic-data/). 
 
 ## Installation
 
@@ -35,6 +35,35 @@ Once installed you need to attach the package:
 library(deepvars)
 ```
 
+### TensorFlow
+
+As one of its dependencies the `deepvars` uses `tensorflow`, which is an R interface to the popular [TensorFlow](https://www.tensorflow.org) library. We have tried to automate the TensorFlow configuration as explained [here](https://rstudio.github.io/reticulate/articles/python_dependencies.html). Should you run into issues you may have to manually install the `tensorflow` dependency. Detailed instructions to this end can be found [here](https://tensorflow.rstudio.com/installation/).
+
 ## Guidance
 
 For detailed guidance on different topics and estimation methods covered by `deepvars`, you can consult the package vignettes. Simply type `utils::browseVignettes()` once you have completed the steps above.
+
+## Citation
+
+If you would like to cite our work in your own research, we'd much appreciate it. Please cite this package as follows:
+
+```
+@Manual{,
+    title = {deepvars: Deep Vector Autoregression},
+    author = {Patrick Altmeyer},
+    note = {R package version 0.1.0},
+  }
+```
+
+Please cite the related working paper as follows:
+
+```
+@article{agusti2021deep,
+	author = {Agust{\'\i}, Marc and Altmeyer, Patrick and Vidal-Quadras Costa, Ignacio},
+	title = {Deep Vector Autoregression for Macroeconomic Data},
+	year = {2021}}
+```
+
+
+
+
