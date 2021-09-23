@@ -42,7 +42,6 @@ command once you have completed the steps above:
 
 ``` r
 utils::browseVignettes('deepvars')
-#> No vignettes found by utils::browseVignettes("deepvars")
 ```
 
 ## Known Issues

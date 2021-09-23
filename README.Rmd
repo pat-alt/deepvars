@@ -39,7 +39,7 @@ library(deepvars)
 
 Full documenation of the package is still missing. In the meantime, detailed guidance on different topics and estimation methods covered by `deepvars`, can be found in the vignettes. Simply type the following command once you have completed the steps above:
 
-```{r}
+```{r, eval=FALSE}
 utils::browseVignettes('deepvars')
 ```
 
