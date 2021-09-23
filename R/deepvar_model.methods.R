@@ -1,4 +1,5 @@
 # Fit model: ----
+#' @importFrom keras `%>%`
 fit.deepvar_model <- function(deepvar_model,verbose=0,...) {
 
   K <- deepvar_model$model_data$K

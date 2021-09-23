@@ -6,8 +6,6 @@
 #' @param horizon
 #' @param type
 #'
-#' @importFrom magrittr %>%
-#'
 #' @return
 #' @export
 #'

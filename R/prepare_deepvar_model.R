@@ -6,6 +6,8 @@
 #' @return
 #' @export
 #'
+#' @importFrom keras `%>%`
+#'
 #' @author Patrick Altmeyer
 prepare_deepvar_model <- function(
   deepvar_data,
