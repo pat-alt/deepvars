@@ -14,12 +14,9 @@ Imports:
     data.table (>= 1.12.6),
     scales (>= 1.1.0),
     keras (>= 2.4.0),
-<<<<<<< HEAD
     rmarkdown,
-    knitr
-=======
+    knitr,
     tensorflow (>= 2.4.0)
->>>>>>> 7c48e6e0b59aff205958efaf798806ec95f37191
 Suggests: 
     testthat (>= 2.3.1)
 VignetteBuilder: knitr
