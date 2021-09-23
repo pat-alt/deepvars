@@ -31,17 +31,23 @@ devtools::install_github("pat-alt/deepvars", build_vignettes=TRUE)
 
 Once installed you need to attach the package:
 
-```{r attach, echo=T}
+```{r}
 library(deepvars)
 ```
+
+## Getting started
+
+Full documenation of the package is still missing. In the meantime, detailed guidance on different topics and estimation methods covered by `deepvars`, can be found in the vignettes. Simply type the following command once you have completed the steps above:
+
+```{r}
+utils::browseVignettes('deepvars')
+```
+
+## Known Issues
 
 ### TensorFlow
 
 As one of its dependencies the `deepvars` uses `tensorflow`, which is an R interface to the popular [TensorFlow](https://www.tensorflow.org) library. We have tried to automate the TensorFlow configuration as explained [here](https://rstudio.github.io/reticulate/articles/python_dependencies.html). Should you run into issues you may have to manually install the `tensorflow` dependency. Detailed instructions to this end can be found [here](https://tensorflow.rstudio.com/installation/).
-
-## Guidance
-
-For detailed guidance on different topics and estimation methods covered by `deepvars`, you can consult the package vignettes. Simply type `utils::browseVignettes()` once you have completed the steps above.
 
 ## Citation
 

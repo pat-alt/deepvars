@@ -33,6 +33,20 @@ Once installed you need to attach the package:
 library(deepvars)
 ```
 
+## Getting started
+
+Full documenation of the package is still missing. In the meantime,
+detailed guidance on different topics and estimation methods covered by
+`deepvars`, can be found in the vignettes. Simply type the following
+command once you have completed the steps above:
+
+``` r
+utils::browseVignettes('deepvars')
+#> No vignettes found by utils::browseVignettes("deepvars")
+```
+
+## Known Issues
+
 ### TensorFlow
 
 As one of its dependencies the `deepvars` uses `tensorflow`, which is an
@@ -43,12 +57,6 @@ explained
 Should you run into issues you may have to manually install the
 `tensorflow` dependency. Detailed instructions to this end can be found
 [here](https://tensorflow.rstudio.com/installation/).
-
-## Guidance
-
-For detailed guidance on different topics and estimation methods covered
-by `deepvars`, you can consult the package vignettes. Simply type
-`utils::browseVignettes()` once you have completed the steps above.
 
 ## Citation
 
