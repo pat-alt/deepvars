@@ -33,8 +33,10 @@ deepvareg <- function(
   )
   # Fit the model:
   deepvar_model <- fit(deepvar_model, verbose=verbose, ...)
+  # Posterior predictive:
+  deepvar_model$posterior_predictive <- posterior_predictive(deepvar_model)
   # Fitted values:
-  deepvar_model$y_hat <- fitted(deepvar_model)
+  deepvar_model$y_hat <- deepvar_model$posterior_predictive$mean
   # Residuals:
   deepvar_model$res <- residuals(deepvar_model)
 

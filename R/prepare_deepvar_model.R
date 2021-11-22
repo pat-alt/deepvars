@@ -14,7 +14,8 @@ prepare_deepvar_model <- function(
   num_units=50,
   num_layers=2,
   p_drop_out=0.5,
-  optimizer="adam"
+  epsilon=0.01,
+  optimizer=keras::optimizer_adam(learning_rate=epsilon)
 ) {
 
   K <- deepvar_data$K
@@ -39,12 +40,23 @@ prepare_deepvar_model <- function(
       )
       list_of_layers <- do.call(c, list_of_layers)
       model <- keras::keras_model_sequential(list_of_layers) %>%
-        keras::layer_dense(units = 1)
+        keras::layer_dense(units = 2, activation = "linear") %>%
+        tfprobability::layer_distribution_lambda(
+          function(x) {
+            tfprobability::tfd_normal(
+              loc = x[, 1, drop = FALSE], # mean
+              scale = 1e-3 + tensorflow::tf$math$softplus(x[, 2, drop = FALSE]) # standard deviation
+            )
+          }
+        )
+
+      # Loss:
+      negloglik <- function(y, model) - (model %>% tfprobability::tfd_log_prob(y))
 
       # Compile model:
       model %>%
         keras::compile(
-          loss = "mae",
+          loss = negloglik,
           optimizer = optimizer
         )
       return(model)

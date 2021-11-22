@@ -39,11 +39,13 @@ fit <- function(deepvar_model,...) {
 
 ## Predictions: ----
 #' @export
-fitted.deepvar_model <- function(deepvar_model, X=NULL) {
+posterior_predictive.deepvar_model <- function(deepvar_model, X=NULL) {
 
   if (is.null(X) & !is.null(deepvar_model$y_hat)) {
     y_hat <- deepvar_model$y_hat
   } else {
+
+    # Preprocessing:
     if (is.null(X)) {
       X <- deepvar_model$X_train
     }
@@ -60,27 +62,44 @@ fitted.deepvar_model <- function(deepvar_model, X=NULL) {
       X <- apply_scaler_from_training(X, scaler, lags, K)
       # Reshape:
       X <- keras::array_reshape(X, dim=c(dim(X)[1],1,dim(X)[2]))
-
     }
-    y_hat <- matrix(
-      sapply(
-        1:length(deepvar_model$model_list),
-        function(k) {
-          mod <- deepvar_model$model_list[[k]]
-          y_hat <- mod %>%
-            stats::predict(X)
-          # Rescale data:
-          y_hat <- invert_scaling(y_hat, deepvar_model$model_data, k=k)
-          return(unlist(y_hat))
-        }
-      ),
-      ncol = deepvar_model$model_data$K
+
+    # Compute fitted values:
+    fitted <- lapply(
+      1:length(deepvar_model$model_list),
+      function(k) {
+        mod <- deepvar_model$model_list[[k]]
+        fitted <- mod(X)
+        y_hat <- as.numeric(fitted %>% tfprobability::tfd_mean())
+        sd <- as.numeric(fitted %>% tfprobability::tfd_stddev())
+        # Rescale data:
+        y_hat <- invert_scaling(y_hat, deepvar_model$model_data, k=k)
+        sd <- invert_scaling(sd, deepvar_model$model_data, k=k)
+        return(list(y_hat=unlist(y_hat), sd=unlist(de)))
+      }
     )
+    # Posterior mean:
+    y_hat <- matrix(sapply(fitted, function(i) i$y_hat), ncol = deepvar_model$model_data$K)
     rownames(y_hat) <- NULL
     colnames(y_hat) <- deepvar_model$model_data$var_names
+    # Posterior variance:
+    sd <- matrix(sapply(fitted, function(i) i$sd), ncol = deepvar_model$model_data$K)
+    rownames(sd) <- NULL
+    colnames(sd) <- deepvar_model$model_data$var_names
   }
 
-  return(y_hat)
+  return(list(mean=y_hat, sd=sd))
+}
+
+#' @export
+posterior_predictive <- function(deepvar_model, X=NULL) {
+  UseMethod("posterior_predictive", deepvar_model)
+}
+
+#' @export
+fitted.deepvar_model <- function(deepvar_model, X=NULL) {
+  posterior_predictive <- posterior_predictive(deepvar_model, X)
+  return(posterior_predictive$mean)
 }
 
 #' @export
