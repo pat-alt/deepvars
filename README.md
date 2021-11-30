@@ -9,15 +9,19 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 # `deepvars`
 
 The `deepvars` package provides a framework for Deep Vector
-Autoregression in R. The methodology is based on [Agusti, Altmeyer and
-Vidal-Quadras Costa (2021)](Vidal-Quadras%20Costa) - a working paper
-initially prepared as part of the [Masters Degree in Data
+Autoregression in R. The methodology is based on [Altmeyer, Agusti and
+Vidal-Quadras Costa
+(2021)](https://github.com/pat-alt/deepvarsMacro/blob/main/paper/paper.pdf),
+a working paper initially prepared as part of the [Masters Degree in
+Data
 Science](https://bse.eu/study/masters-programs/data-science-methodology)
 at [Barcelona School of Economics](https://bse.eu). For a summary of the
-current version of the working paper see
+first version of the working paper see
 [here](https://thevoice.bse.eu/2021/09/16/deep-vector-autoregression-for-macroeconomic-data/).
 
-<img src="www/hex.png" width="250" style="display: block; margin: auto;" />
+<p align="center">
+<img src="www/hex.png" style="width: 250px;" />
+</p>
 
 ## Installation
 
@@ -53,11 +57,6 @@ run the below in R:
 
 ``` r
 devtools::install_github("pat-alt/deepvars", build_vignettes=TRUE)
-```
-
-Once installed you need to attach the package:
-
-``` r
 library(deepvars)
 ```
 

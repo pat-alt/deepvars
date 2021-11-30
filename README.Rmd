@@ -19,12 +19,11 @@ knitr::opts_chunk$set(
 
 # `deepvars`
 
-The `deepvars` package provides a framework for Deep Vector Autoregression in R. The methodology is based on [Agusti, Altmeyer and Vidal-Quadras Costa (2021)](Vidal-Quadras Costa) - a working paper initially prepared as part of the [Masters Degree in Data Science](https://bse.eu/study/masters-programs/data-science-methodology) at [Barcelona School of Economics](https://bse.eu). For a summary of the current version of the working paper see [here](https://thevoice.bse.eu/2021/09/16/deep-vector-autoregression-for-macroeconomic-data/). 
+The `deepvars` package provides a framework for Deep Vector Autoregression in R. The methodology is based on [Altmeyer, Agusti and Vidal-Quadras Costa (2021)](https://github.com/pat-alt/deepvarsMacro/blob/main/paper/paper.pdf), a working paper initially prepared as part of the [Masters Degree in Data Science](https://bse.eu/study/masters-programs/data-science-methodology) at [Barcelona School of Economics](https://bse.eu). For a summary of the first version of the working paper see [here](https://thevoice.bse.eu/2021/09/16/deep-vector-autoregression-for-macroeconomic-data/). 
 
-```{r, fig.align='center', echo=FALSE, out.width=250}
-knitr::include_graphics("www/hex.png")
-```
-
+<p align="center">
+  <img src="www/hex.png" style="width: 250px;" />
+</p>
 
 ## Installation
 
@@ -52,11 +51,6 @@ You can either clone this repository and install from source or simply run the b
 
 ```{r, eval=FALSE}
 devtools::install_github("pat-alt/deepvars", build_vignettes=TRUE)
-```
-
-Once installed you need to attach the package:
-
-```{r}
 library(deepvars)
 ```
 
