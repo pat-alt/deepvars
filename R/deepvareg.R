@@ -19,6 +19,8 @@ deepvareg <- function(
   horizon=1,
   type="var",
   verbose=0,
+  bayes=TRUE,
+  n_mc=50,
   ...
 ) {
 
@@ -37,6 +39,8 @@ deepvareg <- function(
   deepvar_model$posterior_predictive <- posterior_predictive(deepvar_model)
   # Fitted values:
   deepvar_model$y_hat <- deepvar_model$posterior_predictive$mean
+  # Predictive uncertainty:
+  deepvar_model$uncertainty <- deepvar_model$posterior_predictive$sd
   # Residuals:
   deepvar_model$res <- residuals(deepvar_model)
 
