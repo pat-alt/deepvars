@@ -80,7 +80,7 @@ Fit the two models ...
 # VAR
 var_model <- vareg(train_data, lags = lags)
 # Deep VAR
-deepvar_model <- deepvareg(train_data, lags=lags, num_units = 100, epochs=100)
+deepvar_model <- deepvareg(train_data, lags=lags, num_units = 100, epochs=500)
 ```
 
 ### 1-step ahead predictions
