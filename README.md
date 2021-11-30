@@ -17,6 +17,12 @@ at [Barcelona School of Economics](https://bse.eu). For a summary of the
 current version of the working paper see
 [here](https://thevoice.bse.eu/2021/09/16/deep-vector-autoregression-for-macroeconomic-data/).
 
+``` r
+knitr::include_graphics("www/hex.png")
+```
+
+<img src="www/hex.png" width="100%" style="display: block; margin: auto;" />
+
 ## Installation
 
 ### Prerequisites

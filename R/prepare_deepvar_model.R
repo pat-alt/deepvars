@@ -95,7 +95,7 @@ prepare_deepvar_model <- function(
           function(x) {
             tfprobability::tfd_normal(
               loc = x[, 1, drop = FALSE], # mean
-              scale = 1e-3 + tensorflow::tf$math$softplus(x[, 2, drop = FALSE]) # standard deviation
+              scale = 1e-5 + tensorflow::tf$math$softplus(x[, 2, drop = FALSE]) # standard deviation
             )
           }
         )
