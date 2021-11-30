@@ -8,7 +8,8 @@ Description: deepvars provides a framework for deep vector autoregression in R.
 Config/reticulate:
   list(
     packages = list(
-      list(package = "tensorflow")
+      list(package = "tensorflow"),
+      list(package = "tensorflow_probability")
     )
   )
 License: MIT + file LICENSE
