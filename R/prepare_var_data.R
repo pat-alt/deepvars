@@ -36,27 +36,6 @@ prepare_var_data <- function(data, lags=1, constant=TRUE, standardize=FALSE) {
     X <- cbind("constant"=1,X)
   }
 
-  # new_names <- c(sapply(1:lags, function(p) sprintf("%s_l%i", var_names, p)))
-  # data[
-  #   ,
-  #   (new_names) := sapply(
-  #     1:lags,
-  #     function(lag) {
-  #       data.table::shift(.SD, lag)
-  #     }
-  #   )
-  # ]
-  # # Dependent variable:
-  # y = as.matrix(data[(lags+1):.N,1:K])
-  # # Explanatory variables:
-  # if (constant==T) {
-  #   const = 1
-  #   X = cbind("constant"=1,as.matrix(data[(lags+1):.N,(K+1):ncol(data)]))
-  # } else {
-  #   const = 0
-  #   X = as.matrix(data[(lags+1):.N,(K+1):ncol(data)])
-  # }
-
   # Output:
   var_data <- list(
     X=X,

@@ -30,7 +30,8 @@ predict.dvars_model <- function(dvars_model, X=NULL) {
 #' @export
 loss.dvars_model <- function(dvars_model, X=NULL, y=NULL) {
   res <- data.table::data.table(residuals(dvars_model, X=X, y=y))
-  res[,date:=dvars_model$model_data$data[,date][1:(.N)]]
+  lags <- dvars_model$model_data$lags
+  res[,date:=dvars_model$model_data$data[,date][(lags+1):(.N+lags)]]
   res <- data.table::melt(res, id.vars="date")
   return(res)
 }
