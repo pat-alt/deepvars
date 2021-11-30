@@ -17,11 +17,7 @@ at [Barcelona School of Economics](https://bse.eu). For a summary of the
 current version of the working paper see
 [here](https://thevoice.bse.eu/2021/09/16/deep-vector-autoregression-for-macroeconomic-data/).
 
-``` r
-knitr::include_graphics("www/hex.png")
-```
-
-<img src="www/hex.png" width="100%" style="display: block; margin: auto;" />
+<img src="www/hex.png" width="250" style="display: block; margin: auto;" />
 
 ## Installation
 
@@ -81,15 +77,17 @@ utils::browseVignettes('deepvars')
 If you would like to cite our work in your own research, we’d much
 appreciate it. Please cite this package as follows:
 
-    @Manual{,
-        title = {deepvars: Deep Vector Autoregression},
-        author = {Patrick Altmeyer},
-        note = {R package version 0.1.0},
-      }
+    @Manual{altmeyer2021deepvars,
+      title = {deepvars: Deep Vector Autoregression},
+      author = {Patrick Altmeyer},
+      note = {R package version 0.1.0}}
 
 Please cite the related working paper as follows:
 
-    @article{agusti2021deep,
+    @article{altmeyer2021deep,
         author = {Altmeyer, Patrick and Agusti, Marc and Vidal-Quadras Costa, Ignacio},
+        date-added = {2021-09-23 13:33:59 +0200},
+        date-modified = {2021-11-30 16:33:49 +0100},
         title = {Deep Vector Autoregression for Macroeconomic Data},
+        url = {https://thevoice.bse.eu/wp-content/uploads/2021/07/ds21-project-agusti-et-al.pdf},
         year = {2021}}
