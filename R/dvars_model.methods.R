@@ -8,6 +8,13 @@ predict.dvars_model <- function(dvars_model, X=NULL) {
     measure.vars=dvars_model$model_data$var_names
   )
 
+  # Compute uncertainty:
+  uncertainty <- uncertainty(dvars_model, X)
+  uncertainty <- data.table::melt(
+    data.table::data.table(uncertainty),
+    measure.vars=dvars_model$model_data$var_names
+  )
+
   # Add date if possible:
   if (is.null(X)) {
     predictions[,date:=dvars_model$model_data$data[,date][1:(.N)],by=variable]
@@ -16,9 +23,17 @@ predict.dvars_model <- function(dvars_model, X=NULL) {
   }
   data.table::setcolorder(predictions, "date")
 
+  if (is.null(X)) {
+    uncertainty[,date:=dvars_model$model_data$data[,date][1:(.N)],by=variable]
+  } else {
+    uncertainty[,date:=1:(.N),by=variable]
+  }
+  data.table::setcolorder(uncertainty, "date")
+
   # Return predictions:
   predictions <- list(
     predictions = predictions,
+    uncertainty = uncertainty,
     X = X,
     model = dvars_model
   )
@@ -98,6 +113,8 @@ forecast.dvars_model <- function(dvars_model, n.ahead=1) {
     sample[,date:=1:.N]
   }
   fcst <- data.table::copy(sample[.N,])
+  uncty <- data.table::copy(sample[.N,])
+  uncty[,(var_names):=0]
   data <- rbind(sample, fcst)
   counter <- 1
   increment_date <- ifelse(
@@ -109,12 +126,19 @@ forecast.dvars_model <- function(dvars_model, n.ahead=1) {
   # Forecast recursively:
   while(counter <= n.ahead) {
     X <- prepare_predictors(dvars_model, data[,.SD,.SDcols=var_names])
-    y_hat <- predict(dvars_model, X)
+    predictive <- predict(dvars_model, X)
+    y_hat <- predictive$predictions
+    uncertainty <- predictive$uncertainty
 
     # Update
-    fcst_t <- data.table::dcast(y_hat$predictions, .~variable)[,-1]
+    fcst_t <- data.table::dcast(y_hat, .~variable)[,-1]
     fcst_t[,date:=data[.N,date+increment_date]]
     fcst <- rbind(fcst, fcst_t)
+
+    uncty_t <- data.table::dcast(uncertainty, .~variable)[,-1]
+    uncty_t[,date:=data[.N,date+increment_date]]
+    uncty <- rbind(uncty, uncty_t)
+
     data <- rbind(data, fcst_t)
     counter <- counter + 1
   }
@@ -123,6 +147,7 @@ forecast.dvars_model <- function(dvars_model, n.ahead=1) {
   # Return:
   fcst <- list(
     fcst = fcst,
+    uncty = uncty,
     model_data = dvars_model$model_data
   )
   class(fcst) <- "forecast"

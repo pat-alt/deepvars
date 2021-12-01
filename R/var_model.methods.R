@@ -28,6 +28,33 @@ fitted.var_model <- function(var_model, X=NULL) {
 }
 
 #' @export
+uncertainty.var_model <- function(var_model, X=NULL) {
+  if (is.null(X)) {
+    uncertainty <- matrix(
+      rep(sqrt(diag(var_model$Sigma_res)),var_model$model_data$N),
+      ncol=var_model$model_data$K,
+      byrow = TRUE
+    )
+    colnames(uncertainty) <- var_model$model_data$var_names
+  } else {
+    # PLACEHOLDER:
+    uncertainty <- matrix(
+      rep(sqrt(diag(var_model$Sigma_res)),nrow(X)),
+      ncol=var_model$model_data$K,
+      byrow = TRUE
+    )
+    colnames(uncertainty) <- var_model$model_data$var_names
+  }
+  return(uncertainty)
+}
+
+#' @export
+uncertainty <- function(var_model, X=NULL) {
+  UseMethod("uncertainty", var_model)
+}
+
+
+#' @export
 residuals.var_model <- function(var_model, X=NULL, y=NULL) {
 
   new_data <- new_data_supplied(X=X,y=y)

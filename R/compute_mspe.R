@@ -15,4 +15,5 @@ compute_mspe = function(Theta,
     })
     mspe_h = Reduce(`+`, terms_to_sum)
   })
+  return(mspe)
 }

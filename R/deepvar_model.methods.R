@@ -75,7 +75,7 @@ posterior_predictive.deepvar_model <- function(deepvar_model, X=NULL) {
         # Rescale data:
         y_hat <- invert_scaling(y_hat, deepvar_model$model_data, k=k)
         sd <- invert_scaling(sd, deepvar_model$model_data, k=k)
-        return(list(y_hat=unlist(y_hat), sd=unlist(de)))
+        return(list(y_hat=unlist(y_hat), sd=unlist(sd)))
       }
     )
     # Posterior mean:
@@ -98,8 +98,27 @@ posterior_predictive <- function(deepvar_model, X=NULL) {
 
 #' @export
 fitted.deepvar_model <- function(deepvar_model, X=NULL) {
-  posterior_predictive <- posterior_predictive(deepvar_model, X)
-  return(posterior_predictive$mean)
+  if (is.null(X)) {
+    y_hat <- deepvar_model$posterior_predictive$mean
+  } else {
+    y_hat <- posterior_predictive(deepvar_model, X)$mean
+  }
+  return(y_hat)
+}
+
+#' @export
+uncertainty.deepvar_model <- function(deepvar_model, X=NULL) {
+  if (is.null(X)) {
+    uncertainty <- deepvar_model$posterior_predictive$sd
+  } else {
+    uncertainty <- posterior_predictive(deepvar_model, X)$sd
+  }
+  return(uncertainty)
+}
+
+#' @export
+uncertainty <- function(deepvar_model, X=NULL) {
+  UseMethod("uncertainty", deepvar_model)
 }
 
 #' @export

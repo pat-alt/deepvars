@@ -5,10 +5,20 @@ print.predictions <- function(predictions) {
 }
 
 #' @export
-plot.predictions <- function(predictions, y_true=NULL) {
+plot.predictions <- function(
+  predictions,
+  y_true=NULL,
+  plot_ci=FALSE,
+  ci=.95,
+  ci_colour="darkblue"
+) {
+
+  # Fitted values:
   pred <- predictions$predictions
   pred[,type:="Prediction"]
   model_data <- predictions$model$model_data
+
+  # True outcomes:
   if (!is.null(y_true)) {
     y_true <- data.table::data.table(y_true)
     y_true[,type:="Actual"]
@@ -16,7 +26,29 @@ plot.predictions <- function(predictions, y_true=NULL) {
     y_true[,date:=pred$date]
   }
   dt_plot <- rbind(pred,y_true)
-  p <- ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
+
+  # Uncertainty:
+  if (plot_ci) {
+    uncty <- predictions$uncertainty[,type:="Prediction"]
+    setnames(uncty, "value", "uncertainty")
+    dt_plot <- merge(dt_plot, uncty, on="date", all = TRUE)
+    dt_plot[is.na(uncertainty), uncertainty:=0]
+    p = (1 - ci)/2
+    q = abs(stats::qnorm(p))
+    p <- ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
+      ggplot2::geom_ribbon(
+        ggplot2::aes(ymin=value-q*uncertainty, ymax=value+q*uncertainty, group=type),
+        alpha=0.3,
+        fill=ci_colour,
+        colour=ci_colour,
+        size=0.25
+      )
+  } else {
+    p <- ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type))
+  }
+
+
+  p <- p +
     ggplot2::geom_line() +
     ggplot2::scale_color_discrete(name="Type:") +
     ggplot2::facet_wrap(
