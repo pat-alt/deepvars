@@ -75,3 +75,15 @@ devtools::build_vignettes()
 # usethis::use_travis()
 # usethis::use_appveyor()
 
+## Creeate hex ----
+library(hexSticker)
+library(vars)
+library(ggplotify)
+data(Canada)
+varres <- VAR(Canada[1:40,], p = 2, type = "none")
+pred <- predict(varres, n.ahead = 50)
+p <- as.ggplot(~fanchart(pred, names = "prod", axes=FALSE, main=NA))
+s <- sticker(
+  p, package="deepvars", p_size=7.5, s_x=1.05, s_y=.8, s_width=1.5, s_height=1,
+  h_fill="#0697fd", p_color="white", h_color="black", filename="www/hex.png"
+)
