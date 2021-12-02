@@ -6,7 +6,12 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
-# `deepvars`
+**NOTE** ℹ️: This is the repository for the companion package to our
+paper Altmeyer, Agusti, and Vidal-Quadras Costa (2021). For the specific
+code used for the paper and additional resources please see [this
+repository](https://github.com/pat-alt/deepvarsMacro).
+
+## `deepvars`
 
 The `deepvars` package provides a framework for Deep Vector
 Autoregression in R. The methodology is based on [Altmeyer, Agusti and
@@ -62,31 +67,24 @@ library(deepvars)
 
 ## Getting started
 
-Full documenation of the package is still missing. In the meantime,
-detailed guidance on different topics and estimation methods covered by
-`deepvars`, can be found in the vignettes. Simply type the following
-command once you have completed the steps above:
+Full documentation of the package is still a work-in-progress. In the
+meantime, detailed guidance on different topics and estimation methods
+covered by `deepvars`, can be found in the vignettes. Simply type the
+following command once you have completed the steps above:
 
 ``` r
 utils::browseVignettes('deepvars')
 ```
 
-## Citation
+## Disclaimer
 
-If you would like to cite our work in your own research, we’d much
-appreciate it. Please cite this package as follows:
+*Date*: 2 December, 2021.
 
-    @Manual{altmeyer2021deepvars,
-      title = {deepvars: Deep Vector Autoregression},
-      author = {Patrick Altmeyer},
-      note = {R package version 0.1.0}}
-
-Please cite the related working paper as follows:
-
-    @article{altmeyer2021deep,
-        author = {Altmeyer, Patrick and Agusti, Marc and Vidal-Quadras Costa, Ignacio},
-        date-added = {2021-09-23 13:33:59 +0200},
-        date-modified = {2021-11-30 16:33:49 +0100},
-        title = {Deep Vector Autoregression for Macroeconomic Data},
-        url = {https://thevoice.bse.eu/wp-content/uploads/2021/07/ds21-project-agusti-et-al.pdf},
-        year = {2021}}
+This package was developed in tandem with the initial research for my
+masters thesis. Documentation is incomplete and it should at this point
+**not** be regarded as a fully-fledged, tested and production-ready
+piece of software, so please bear this in mind. That being said, I’m
+quite confident about the basic functionality of training and predicting
+from a Deep VAR as well as various plotting methods that can be used for
+visualizing the results. I encourage you to try it out yourself and
+should you encounter any problem, please just open an issue.
