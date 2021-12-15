@@ -7,9 +7,11 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 <!-- badges: end -->
 
 **NOTE** ℹ️: This is the repository for the companion package to our
-paper Altmeyer, Agusti, and Vidal-Quadras Costa (2021). For the specific
-code used for the paper and additional resources please see [this
-repository](https://github.com/pat-alt/deepvarsMacro).
+paper Altmeyer, Agusti, and Vidal-Quadras Costa (2021). We recently
+presented our paper at the [NeurIPS 2021 MLECON
+workshop](https://nips.cc/Conferences/2021/ScheduleMultitrack?event=21847).
+For the specific code used for the paper and additional resources please
+see [this repository](https://github.com/pat-alt/deepvarsMacro).
 
 ## `deepvars`
 

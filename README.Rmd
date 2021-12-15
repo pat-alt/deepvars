@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
-**NOTE** ℹ️: This is the repository for the companion package to our paper @altmeyer2021deep. For the specific code used for the paper and additional resources please see [this repository](https://github.com/pat-alt/deepvarsMacro).
+**NOTE** ℹ️: This is the repository for the companion package to our paper @altmeyer2021deep. We recently presented our paper at the [NeurIPS 2021 MLECON workshop](https://nips.cc/Conferences/2021/ScheduleMultitrack?event=21847). For the specific code used for the paper and additional resources please see [this repository](https://github.com/pat-alt/deepvarsMacro).
 
 ## `deepvars`
 
