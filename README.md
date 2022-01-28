@@ -16,11 +16,9 @@ see [this repository](https://github.com/pat-alt/deepvarsMacro).
 ## `deepvars`
 
 The `deepvars` package provides a framework for Deep Vector
-Autoregression in R. The methodology is based on [Altmeyer, Agusti and
-Vidal-Quadras Costa
-(2021)](https://github.com/pat-alt/deepvarsMacro/blob/main/paper/paper.pdf),
-a working paper initially prepared as part of the [Masters Degree in
-Data
+Autoregression in R. The methodology is based on (Altmeyer, Agusti, and
+Vidal-Quadras Costa 2021), a working paper initially prepared as part of
+the [Masters Degree in Data
 Science](https://bse.eu/study/masters-programs/data-science-methodology)
 at [Barcelona School of Economics](https://bse.eu). For a summary of the
 first version of the working paper see

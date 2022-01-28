@@ -1,43 +1,3 @@
-# Variational inference: ----
-# Prior:
-prior_trainable <- function(
-  kernel_size,
-  bias_size = 0,
-  dtype = NULL
-) {
-  n <- kernel_size + bias_size
-  keras::keras_model_sequential() %>%
-    tfprobability::layer_variable(n, dtype = dtype, trainable = TRUE) %>%
-    tfprobability::layer_distribution_lambda(
-      function(t) {
-        tfprobability::tfd_independent(
-          tfprobability::tfd_normal(loc = t, scale = 1),
-          reinterpreted_batch_ndims = 1
-        )
-      }
-    )
-}
-# Posterior
-posterior_mean_field <- function(
-  kernel_size,
-  bias_size = 0,
-  dtype = NULL
-) {
-  n <- kernel_size + bias_size
-  c <- log(expm1(1))
-  keras::keras_model_sequential(list(
-    tfprobability::layer_variable(shape = 2 * n, dtype = dtype),
-    tfprobability::layer_distribution_lambda(
-      make_distribution_fn = function(t) {
-        tfprobability::tfd_independent(tfprobability::tfd_normal(
-          loc = t[1:n],
-          scale = 1e-5 + tensorflow::tf$nn$softplus(c + t[(n + 1):(2 * n)])
-        ), reinterpreted_batch_ndims = 1)
-      }
-    )
-  ))
-}
-
 # Combined model: ----
 #' Deep VAR model setup
 #'
@@ -83,14 +43,6 @@ prepare_deepvar_model <- function(
       list_of_layers <- do.call(c, list_of_layers)
       model <- keras::keras_model_sequential(list_of_layers) %>%
         keras::layer_dense(units = 2, activation = "linear") %>%
-        # # Epistemic uncertainty (through variational inference)
-        # tfprobability::layer_dense_variational(
-        #   units = 2,
-        #   make_posterior_fn = posterior_mean_field,
-        #   make_prior_fn = prior_trainable,
-        #   kl_weight = 1 / N
-        # ) %>%
-        # Aleotoric uncertainty (through simple probabilistic layer)
         tfprobability::layer_distribution_lambda(
           function(x) {
             tfprobability::tfd_normal(

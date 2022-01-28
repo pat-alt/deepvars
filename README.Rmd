@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 ## `deepvars`
 
-The `deepvars` package provides a framework for Deep Vector Autoregression in R. The methodology is based on [Altmeyer, Agusti and Vidal-Quadras Costa (2021)](https://github.com/pat-alt/deepvarsMacro/blob/main/paper/paper.pdf), a working paper initially prepared as part of the [Masters Degree in Data Science](https://bse.eu/study/masters-programs/data-science-methodology) at [Barcelona School of Economics](https://bse.eu). For a summary of the first version of the working paper see [here](https://thevoice.bse.eu/2021/09/16/deep-vector-autoregression-for-macroeconomic-data/). 
+The `deepvars` package provides a framework for Deep Vector Autoregression in R. The methodology is based on [@altmeyer2021deep], a working paper initially prepared as part of the [Masters Degree in Data Science](https://bse.eu/study/masters-programs/data-science-methodology) at [Barcelona School of Economics](https://bse.eu). For a summary of the first version of the working paper see [here](https://thevoice.bse.eu/2021/09/16/deep-vector-autoregression-for-macroeconomic-data/). 
 
 <p align="center">
   <img src="www/hex.png" style="width: 250px;" />
