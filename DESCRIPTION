@@ -5,13 +5,6 @@ Version: 0.1.0
 Author: Patrick Altmeyer
 Maintainer: <patrick.altmeyer@barcelonagse.eu>
 Description: deepvars provides a framework for deep vector autoregression in R. 
-Config/reticulate:
-  list(
-    packages = list(
-      list(package = "tensorflow"),
-      list(package = "tensorflow_probability")
-    )
-  )
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -20,12 +13,10 @@ Imports:
     expm (>= 0.999.4),
     data.table (>= 1.12.6),
     scales (>= 1.1.0),
-    keras (>= 2.4.0),
     rmarkdown,
     knitr,
-    tensorflow (>= 2.4.0),
     ggplot2 (>= 3.2.1),
-    tfprobability (>= 0.12.0.0)
+    torch (>= 0.6.0)
 Suggests: 
     testthat (>= 2.3.1)
 Depends: R (>= 2.10)

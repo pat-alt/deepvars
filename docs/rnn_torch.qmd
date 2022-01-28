@@ -1,0 +1,277 @@
+---
+title: "RNN in Torch"
+author: "Patrick Altmeyer"
+format: gfm
+---
+
+## Overview
+
+This tutorial demonstrates how the Recurrent Neural Network underlying Deep VAR is set up using [torch for R](https://torch.mlverse.org/). It heavily draws on ideas and code presented in this great [tutorial](https://blogs.rstudio.com/ai/posts/2021-03-11-forecasting-time-series-with-torch_2/) from the RStudio AI blog. 
+
+## Data input
+
+```{r}
+train_val_test_split <- function(data, train_size=0.8) {
+  N <- nrow(data)
+  end_train <- round(train_size * N)
+  end_val <- end_train + round((N - end_train)/2)
+  data_train <- data[1:end_train,] |> as.matrix()
+  data_val <- data[(end_train+1):end_val,] |> as.matrix()
+  data_test <- data[(end_val+1):N,] |> as.matrix()
+  return(list(train=data_train, val=data_val, test=data_test))
+}
+```
+
+
+```{r}
+library(deepvars)
+data("canada")
+splits_ <- train_val_test_split(canada[,-1])
+df_train <- splits_$train
+df_val <- splits_$val
+df_test <- splits_$test
+```
+
+Recall that the neural network that we are aiming to build takes as its input its own $p$ lags as well as $p$ lags of all other variables in the system.
+
+```{r, eval=TRUE}
+library(torch)
+
+dvar_dataset <- dataset(
+  name = "dvar_dataset",
+  
+  initialize = function(X, response, lags, n_ahead, sample_frac = 1) {
+    
+    self$lags <- lags
+    self$n_ahead <- n_ahead
+    self$response <- response
+    self$train_mean <- colMeans(X)
+    self$train_sd <- sapply(1:ncol(X), function(i) sd(X[,i]))
+    self$X <- torch_tensor(t((t(X) - self$train_mean)/self$train_sd)) # of dimension (D x T)
+    
+    n <- dim(self$X)[1] - self$lags - self$n_ahead + 1
+    
+    self$starts <- sort(sample.int(
+      n = n,
+      size = round(n * sample_frac)
+    ))
+    
+  },
+  
+  .getitem = function(i) {
+    
+    start <- self$starts[i]
+    end <- start + self$lags - 1
+    pred_length <- self$n_ahead
+    
+    list(
+      X = self$X[start:end,],
+      y = self$X[(end + 1):(end + pred_length),self$response]
+    )
+    
+  },
+  
+  .length = function() {
+    length(self$starts) 
+  }
+)
+```
+
+```{r}
+set.seed(123)
+response_var_idx <- 1
+lags <- 3
+n_ahead <- 3
+train_ds <- dvar_dataset(df_train, response_var_idx, lags, n_ahead = n_ahead, sample_frac = 0.5)
+
+batch_size <- 30
+train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = TRUE)
+
+valid_ds <- dvar_dataset(df_val, response_var_idx, lags, n_ahead=n_ahead, sample_frac = 0.5)
+valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
+
+test_ds <- dvar_dataset(df_test, response_var_idx, lags, n_ahead=n_ahead)
+test_dl <- test_ds %>% dataloader(batch_size = 1)
+```
+
+Let's do a quick sanity check to see if the dimensions check out:
+
+```{r}
+train_ds[1]
+```
+
+This looks like what we expected: `X` is a $(D \times p)$ tensor and $y$ is just the single output.
+
+```{r}
+in_idx <- train_ds$starts[1]:(train_ds$starts[1]+train_ds$lags-1)
+out_idx <- c(max(in_idx)+1,response_var_idx)
+X_train <- t((t(df_train) - colMeans(df_train)) / sapply(1:ncol(df_train), function(i) sd(df_train[,i])))
+X_train[in_idx,]
+X_train[out_idx[1]:(out_idx[1]+n_ahead-1),out_idx[2]]
+```
+
+What about the mini-batch? We see that `X` is of the desired dimension `(batch_size, n_timesteps, num_features)`.
+
+```{r}
+length(train_dl)
+
+b <- train_dl %>% dataloader_make_iter() %>% dataloader_next()
+b
+```
+
+## Model
+
+```{r}
+model <- nn_module(
+  
+  initialize = function(type="lstm", input_size, hidden_size, linear_size, output_size,
+                        num_layers = 2, dropout = 0.25, linear_dropout = 0.25) {
+    
+    self$type <- type
+    self$num_layers <- num_layers
+    self$linear_dropout <- linear_dropout
+    
+    self$rnn <- if (self$type == "gru") {
+      nn_gru(
+        input_size = input_size,
+        hidden_size = hidden_size,
+        num_layers = num_layers,
+        dropout = dropout,
+        batch_first = TRUE
+      )
+    } else {
+      nn_lstm(
+        input_size = input_size,
+        hidden_size = hidden_size,
+        num_layers = num_layers,
+        dropout = dropout,
+        batch_first = TRUE
+      )
+    }
+    
+    self$mlp <- nn_sequential(
+      nn_linear(hidden_size, linear_size),
+      nn_relu(),
+      nn_dropout(linear_dropout),
+      nn_linear(linear_size, output_size)
+    )
+    
+  },
+  
+  forward = function(x) {
+    
+    x <- self$rnn(x)
+    x[[1]][ ,-1, ..] %>% 
+      self$mlp()
+    
+  }
+  
+)
+```
+
+```{r}
+D <- dim(train_ds[1]$X)[2]
+net <- model(input_size = D, hidden_size = 32, linear_size = 128, output_size = n_ahead)
+device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
+net <- net$to(device = device)
+```
+
+
+
+## Training
+
+```{r}
+optimizer <- optim_adam(net$parameters, lr = 0.001)
+
+num_epochs <- 10
+
+train_batch <- function(b) {
+  
+  optimizer$zero_grad() # in
+  output <- net(b$X$to(device = device))
+  target <- b$y$to(device = device)
+  
+  loss <- nnf_mse_loss(output, target)
+  loss$backward()
+  optimizer$step()
+  
+  loss$item()
+}
+
+valid_batch <- function(b) {
+  
+  output <- net(b$X$to(device = device))
+  target <- b$y$to(device = device)
+  
+  loss <- nnf_mse_loss(output, target)
+  loss$item()
+  
+}
+
+for (epoch in 1:num_epochs) {
+  
+  net$train()
+  train_loss <- c()
+  
+  coro::loop(for (b in train_dl) {
+    loss <- train_batch(b)
+    train_loss <- c(train_loss, loss)
+  })
+  
+  cat(sprintf("\nEpoch %d, training: loss: %3.5f \n", epoch, mean(train_loss)))
+  
+  net$eval()
+  valid_loss <- c()
+  
+  coro::loop(for (b in valid_dl) {
+    loss <- valid_batch(b)
+    valid_loss <- c(valid_loss, loss)
+  })
+  
+  cat(sprintf("\nEpoch %d, validation: loss: %3.5f \n", epoch, mean(valid_loss)))
+}
+```
+
+
+```{r, eval=FALSE}
+net$eval()
+
+test_preds <- vector(mode = "list", length = length(test_dl))
+
+i <- 1
+
+coro::loop(for (b in test_dl) {
+  
+  input <- b$X
+  output <- net(input$to(device = device))
+  preds <- as.numeric(output)
+  
+  test_preds[[i]] <- preds
+  i <<- i + 1
+  
+})
+
+y_hat <- data.frame(Reduce(cbind,test_preds))
+colnames(y_hat) <- colnames(canada)[-1]
+y_hat <- t(t(y_hat) * train_ds$train_sd + train_ds$train_mean)
+y_hat <- melt(data.table(y_hat)[,id:=1:.N], id.vars = "id", value.name = "y_hat")
+setkey(y_hat, id, variable)
+
+library(data.table)
+y_true <- melt(data.table(df_test[(lags+1):(nrow(df_test)-n_ahead),])[,id:=1:.N], id.vars="id",value.name="y")
+setkey(y_true, id, variable)
+
+dt_plot <- melt(y_hat[y_true],id.vars = c("id","variable"), variable.name = "type")
+library(ggplot2)
+
+ggplot(dt_plot, aes(x=id, y=value, colour=type)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(.~variable, scales = "free")
+  
+```
+
+
+
+
+## Evaluation

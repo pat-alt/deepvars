@@ -15,23 +15,21 @@
 
 ## Dependencies ----
 ## Add one line by package you want to add as dependency
-usethis::use_package("tensorflow", min_version = T)
-usethis::use_package("tfprobability", min_version = T)
-usethis::use_package("keras", min_version = T)
-usethis::use_package("data.table", min_version = T)
-usethis::use_package("readr", min_version = T)
-usethis::use_package("gridExtra", min_version = T)
-usethis::use_package("scales", min_version = T)
-usethis::use_package("ggplot2", min_version = T)
-usethis::use_package("zoo", min_version = T)
-usethis::use_package("stringr", min_version = T)
-usethis::use_package("lubridate", min_version = T)
-usethis::use_package("caret", min_version = T)
-usethis::use_package("stats4", min_version = T)
-usethis::use_package("expm", min_version = T)
-usethis::use_package("tidyr", min_version = T)
-usethis::use_package("lattice", min_version = T)
-usethis::use_package("testthat", "Suggests", min_version = T)
+usethis::use_package("torch", min_version = TRUE)
+usethis::use_package("data.table", min_version = TRUE)
+usethis::use_package("readr", min_version = TRUE)
+usethis::use_package("gridExtra", min_version = TRUE)
+usethis::use_package("scales", min_version = TRUE)
+usethis::use_package("ggplot2", min_version = TRUE)
+usethis::use_package("zoo", min_version = TRUE)
+usethis::use_package("stringr", min_version = TRUE)
+usethis::use_package("lubridate", min_version = TRUE)
+usethis::use_package("caret", min_version = TRUE)
+usethis::use_package("stats4", min_version = TRUE)
+usethis::use_package("expm", min_version = TRUE)
+usethis::use_package("tidyr", min_version = TRUE)
+usethis::use_package("lattice", min_version = TRUE)
+usethis::use_package("testthat", "Suggests", min_version = TRUE)
 usethis::use_package("rmarkdown")
 usethis::use_package("knitr")
 
@@ -55,7 +53,7 @@ usethis::use_test( "VAR_stable" )
 usethis::use_test( "VARMA" )
 
 ## Data ----
-usethis::use_data(canada, internal = F, overwrite = T)
+usethis::use_data(canada, internal = FALSE, overwrite = TRUE)
 
 # Documentation
 
