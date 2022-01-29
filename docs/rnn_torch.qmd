@@ -26,7 +26,10 @@ train_val_test_split <- function(data, train_size=0.8) {
 ```{r}
 library(deepvars)
 data("canada")
-splits_ <- train_val_test_split(canada[,-1])
+dt <- data.table(canada)
+var_cols = colnames(dt)[2:ncol(dt)]
+dt[,(var_cols) := lapply(.SD, function(i) c(0,diff(i))), .SDcols=var_cols]
+splits_ <- train_val_test_split(dt[,-1], train_size = 0.5)
 df_train <- splits_$train
 df_val <- splits_$val
 df_test <- splits_$test
@@ -80,8 +83,8 @@ dvar_dataset <- dataset(
 ```{r}
 set.seed(123)
 response_var_idx <- 1
-lags <- 3
-n_ahead <- 3
+lags <- 6
+n_ahead <- 12
 train_ds <- dvar_dataset(df_train, response_var_idx, lags, n_ahead = n_ahead, sample_frac = 0.5)
 
 batch_size <- 30
@@ -183,7 +186,7 @@ net <- net$to(device = device)
 ```{r}
 optimizer <- optim_adam(net$parameters, lr = 0.001)
 
-num_epochs <- 10
+num_epochs <- 30
 
 train_batch <- function(b) {
   
@@ -233,7 +236,9 @@ for (epoch in 1:num_epochs) {
 ```
 
 
-```{r, eval=FALSE}
+## Evaluation
+
+```{r, eval=TRUE}
 net$eval()
 
 test_preds <- vector(mode = "list", length = length(test_dl))
@@ -251,27 +256,23 @@ coro::loop(for (b in test_dl) {
   
 })
 
-y_hat <- data.frame(Reduce(cbind,test_preds))
-colnames(y_hat) <- colnames(canada)[-1]
-y_hat <- t(t(y_hat) * train_ds$train_sd + train_ds$train_mean)
-y_hat <- melt(data.table(y_hat)[,id:=1:.N], id.vars = "id", value.name = "y_hat")
+y_hat <- test_preds[[1]] * train_ds$train_sd[response_var_idx] + train_ds$train_mean[response_var_idx]
+y_hat <- data.table(y_hat)[,id:=1:.N][,variable:=colnames(df_train)[response_var_idx]]
 setkey(y_hat, id, variable)
 
 library(data.table)
-y_true <- melt(data.table(df_test[(lags+1):(nrow(df_test)-n_ahead),])[,id:=1:.N], id.vars="id",value.name="y")
+y_true <- data.table(rbind(df_val,df_test))
+y_true <- y_true[,..response_var_idx]
+y_true[,id:=(-nrow(df_val)-lags+1):(-nrow(df_val)-lags+y_true[,.N])]
+y_true <- melt(y_true, id.vars = "id", value.name = "y")
 setkey(y_true, id, variable)
 
 dt_plot <- melt(y_hat[y_true],id.vars = c("id","variable"), variable.name = "type")
+dt_plot[type=="y_hat" & id==0, value:=dt_plot[type=="y" & id==0]$value]
 library(ggplot2)
 
-ggplot(dt_plot, aes(x=id, y=value, colour=type)) +
+ggplot(dt_plot[id<=n_ahead], aes(x=id, y=value, colour=type)) +
   geom_line() +
-  geom_point() +
-  facet_wrap(.~variable, scales = "free")
+  geom_point() 
   
 ```
-
-
-
-
-## Evaluation
