@@ -1,0 +1,6 @@
+---
+title: "Deep VAR"
+subtitle: "Tutorials and high-level documentation"
+---
+
+On this website you will find tutorials and high-level documentation for `deepvars`.

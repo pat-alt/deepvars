@@ -1,7 +1,5 @@
 ---
 title: "RNN in Torch"
-author: "Patrick Altmeyer"
-format: gfm
 ---
 
 ## Overview
@@ -25,6 +23,7 @@ train_val_test_split <- function(data, train_size=0.8) {
 
 ```{r}
 library(deepvars)
+library(data.table)
 data("canada")
 dt <- data.table(canada)
 var_cols = colnames(dt)[2:ncol(dt)]
@@ -128,7 +127,7 @@ b
 model <- nn_module(
   
   initialize = function(type="lstm", input_size, hidden_size, linear_size, output_size,
-                        num_layers = 2, dropout = 0.25, linear_dropout = 0.25) {
+                        num_layers = 2, dropout = 0.5, linear_dropout = 0.5) {
     
     self$type <- type
     self$num_layers <- num_layers
@@ -179,14 +178,12 @@ device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
 net <- net$to(device = device)
 ```
 
-
-
 ## Training
 
 ```{r}
 optimizer <- optim_adam(net$parameters, lr = 0.001)
 
-num_epochs <- 30
+num_epochs <- 40
 
 train_batch <- function(b) {
   
@@ -238,7 +235,9 @@ for (epoch in 1:num_epochs) {
 
 ## Evaluation
 
-```{r, eval=TRUE}
+Below we see the `r n_ahead`-step prediction
+
+```{r, eval=TRUE, warning=FALSE}
 net$eval()
 
 test_preds <- vector(mode = "list", length = length(test_dl))
@@ -273,6 +272,12 @@ library(ggplot2)
 
 ggplot(dt_plot[id<=n_ahead], aes(x=id, y=value, colour=type)) +
   geom_line() +
-  geom_point() 
+  geom_point() +
+  scale_color_manual(name="Type:", values=c("blue", "red"), labels=c("Prediction", "Actual")) +
+  labs(
+    title = sprintf("Variable: %s", colnames(df_train)[response_var_idx]),
+    x = "Time",
+    y = "Value"
+  )
   
 ```

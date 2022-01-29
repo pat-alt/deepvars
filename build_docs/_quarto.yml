@@ -1,0 +1,23 @@
+project:
+  type: website
+  output-dir: ../docs
+
+website:
+  title: "docs"
+  navbar:
+    type: dark
+    background: primary
+    left:
+      - href: index.qmd
+        text: Home
+      - href: rnn_torch.qmd
+        text: RNN in `torch` for `deepvars`
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+

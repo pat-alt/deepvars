@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang=""><head>
+  <meta charset="utf-8">
+  <meta name="generator" content="quarto-0.2.349">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>docs - RNN in Torch</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  <script src="site_libs/quarto-nav/quarto-nav.js"></script>
+  <script src="site_libs/quarto-nav/headroom.min.js"></script>
+  <script src="site_libs/clipboard/clipboard.min.js"></script>
+  <meta name="quarto:offset" content="./">
+  <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+  <script src="site_libs/quarto-search/fuse.min.js"></script>
+  <script src="site_libs/quarto-search/quarto-search.js"></script>
+  <script src="site_libs/quarto-html/quarto.js"></script>
+  <script src="site_libs/quarto-html/popper.min.js"></script>
+  <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+  <script src="site_libs/quarto-html/anchor.min.js"></script>
+  <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+  <link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet">
+  <script src="site_libs/bootstrap/bootstrap.min.js"></script>
+  <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+  <link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <script id="quarto-search-options" type="application/json">{
+    "location": "navbar",
+    "copy-button": false,
+    "collapse-after": 2,
+    "panel-placement": "end",
+    "type": "overlay",
+    "limit": 20,
+    "language": {
+      "search-no-results-text": "No results",
+      "search-matching-documents-text": "matching documents",
+      "search-copy-link-title": "Copy link to search",
+      "search-hide-matches-text": "Hide additional matches",
+      "search-more-match-text": "more match in this document",
+      "search-more-matches-text": "more matches in this document",
+      "search-clear-button-title": "Clear",
+      "search-detached-cancel-button-title": "Cancel",
+      "search-submit-button-title": "Submit"
+    }
+  }</script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">docs</span>
+  </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html">Home</a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./rnn_torch.html" aria-current="page">RNN in <code>torch</code> for <code>deepvars</code></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+      <nav id="TOC" role="doc-toc">
+<h2 id="toc-title">On this page</h2>
+<ul>
+<li><a href="#overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+<li><a href="#data-input" class="nav-link" data-scroll-target="#data-input">Data input</a></li>
+<li><a href="#model" class="nav-link" data-scroll-target="#model">Model</a></li>
+<li><a href="#training" class="nav-link" data-scroll-target="#training">Training</a></li>
+<li><a href="#evaluation" class="nav-link" data-scroll-target="#evaluation">Evaluation</a></li>
+</ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content">
+<header id="title-block-header">
+<h1 class="title display-7">RNN in Torch</h1>
+</header>
+
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>This tutorial demonstrates how the Recurrent Neural Network underlying Deep VAR is set up using <a href="https://torch.mlverse.org/">torch for R</a>. It heavily draws on ideas and code presented in this great <a href="https://blogs.rstudio.com/ai/posts/2021-03-11-forecasting-time-series-with-torch_2/">tutorial</a> from the RStudio AI blog.</p>
+</section>
+<section id="data-input" class="level2">
+<h2 class="anchored" data-anchor-id="data-input">Data input</h2>
+<div class="cell">
+<div class="sourceCode" id="cb1"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>train_val_test_split <span class="ot">&lt;-</span> <span class="cf">function</span>(data, <span class="at">train_size=</span><span class="fl">0.8</span>) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">nrow</span>(data)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  end_train <span class="ot">&lt;-</span> <span class="fu">round</span>(train_size <span class="sc">*</span> N)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  end_val <span class="ot">&lt;-</span> end_train <span class="sc">+</span> <span class="fu">round</span>((N <span class="sc">-</span> end_train)<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  data_train <span class="ot">&lt;-</span> data[<span class="dv">1</span><span class="sc">:</span>end_train,] <span class="sc">|</span><span class="er">&gt;</span> <span class="fu">as.matrix</span>()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  data_val <span class="ot">&lt;-</span> data[(end_train<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>end_val,] <span class="sc">|</span><span class="er">&gt;</span> <span class="fu">as.matrix</span>()</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  data_test <span class="ot">&lt;-</span> data[(end_val<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>N,] <span class="sc">|</span><span class="er">&gt;</span> <span class="fu">as.matrix</span>()</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">train=</span>data_train, <span class="at">val=</span>data_val, <span class="at">test=</span>data_test))</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb2"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(deepvars)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"canada"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">data.table</span>(canada)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>var_cols <span class="ot">=</span> <span class="fu">colnames</span>(dt)[<span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(dt)]</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>dt[,(var_cols) <span class="sc">:</span><span class="er">=</span> <span class="fu">lapply</span>(.SD, <span class="cf">function</span>(i) <span class="fu">c</span>(<span class="dv">0</span>,<span class="fu">diff</span>(i))), .SDcols<span class="ot">=</span>var_cols]</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>splits_ <span class="ot">&lt;-</span> <span class="fu">train_val_test_split</span>(dt[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">train_size =</span> <span class="fl">0.5</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>df_train <span class="ot">&lt;-</span> splits_<span class="sc">$</span>train</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>df_val <span class="ot">&lt;-</span> splits_<span class="sc">$</span>val</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>df_test <span class="ot">&lt;-</span> splits_<span class="sc">$</span>test</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Recall that the neural network that we are aiming to build takes as its input its own <span class="math inline">\(p\)</span> lags as well as <span class="math inline">\(p\)</span> lags of all other variables in the system.</p>
+<div class="cell">
+<div class="sourceCode" id="cb3"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>dvar_dataset <span class="ot">&lt;-</span> <span class="fu">dataset</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">name =</span> <span class="st">"dvar_dataset"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(X, response, lags, n_ahead, <span class="at">sample_frac =</span> <span class="dv">1</span>) {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>lags <span class="ot">&lt;-</span> lags</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>n_ahead <span class="ot">&lt;-</span> n_ahead</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>response <span class="ot">&lt;-</span> response</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>train_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(X)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>train_sd <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(X), <span class="cf">function</span>(i) <span class="fu">sd</span>(X[,i]))</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>X <span class="ot">&lt;-</span> <span class="fu">torch_tensor</span>(<span class="fu">t</span>((<span class="fu">t</span>(X) <span class="sc">-</span> self<span class="sc">$</span>train_mean)<span class="sc">/</span>self<span class="sc">$</span>train_sd)) <span class="co"># of dimension (D x T)</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">dim</span>(self<span class="sc">$</span>X)[<span class="dv">1</span>] <span class="sc">-</span> self<span class="sc">$</span>lags <span class="sc">-</span> self<span class="sc">$</span>n_ahead <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>starts <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">sample.int</span>(</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">n =</span> n,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">round</span>(n <span class="sc">*</span> sample_frac)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    ))</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">.getitem =</span> <span class="cf">function</span>(i) {</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    start <span class="ot">&lt;-</span> self<span class="sc">$</span>starts[i]</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    end <span class="ot">&lt;-</span> start <span class="sc">+</span> self<span class="sc">$</span>lags <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    pred_length <span class="ot">&lt;-</span> self<span class="sc">$</span>n_ahead</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>      <span class="at">X =</span> self<span class="sc">$</span>X[start<span class="sc">:</span>end,],</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> self<span class="sc">$</span>X[(end <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span>(end <span class="sc">+</span> pred_length),self<span class="sc">$</span>response]</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">.length =</span> <span class="cf">function</span>() {</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(self<span class="sc">$</span>starts) </span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb4"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>response_var_idx <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>lags <span class="ot">&lt;-</span> <span class="dv">6</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>n_ahead <span class="ot">&lt;-</span> <span class="dv">12</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>train_ds <span class="ot">&lt;-</span> <span class="fu">dvar_dataset</span>(df_train, response_var_idx, lags, <span class="at">n_ahead =</span> n_ahead, <span class="at">sample_frac =</span> <span class="fl">0.5</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">&lt;-</span> <span class="dv">30</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>train_dl <span class="ot">&lt;-</span> train_ds <span class="sc">%&gt;%</span> <span class="fu">dataloader</span>(<span class="at">batch_size =</span> batch_size, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>valid_ds <span class="ot">&lt;-</span> <span class="fu">dvar_dataset</span>(df_val, response_var_idx, lags, <span class="at">n_ahead=</span>n_ahead, <span class="at">sample_frac =</span> <span class="fl">0.5</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>valid_dl <span class="ot">&lt;-</span> valid_ds <span class="sc">%&gt;%</span> <span class="fu">dataloader</span>(<span class="at">batch_size =</span> batch_size)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>test_ds <span class="ot">&lt;-</span> <span class="fu">dvar_dataset</span>(df_test, response_var_idx, lags, <span class="at">n_ahead=</span>n_ahead)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>test_dl <span class="ot">&lt;-</span> test_ds <span class="sc">%&gt;%</span> <span class="fu">dataloader</span>(<span class="at">batch_size =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s do a quick sanity check to see if the dimensions check out:</p>
+<div class="cell">
+<div class="sourceCode" id="cb5"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>train_ds[<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-stdout">
+<pre><code>$X
+torch_tensor
+ 0.1020 -1.1904  0.9092 -0.4763
+ 0.9909  0.5094  1.8195 -0.4147
+ 1.1777  1.1057  1.2633  0.2022
+ 0.6616 -0.9201  1.6707 -0.4969
+-0.6957 -2.2618 -0.5863  0.5517
+-1.3460 -1.2138  3.2111  1.9088
+[ CPUFloatType{6,4} ]
+
+$y
+torch_tensor
+-2.0908
+-2.8897
+-2.9660
+-1.4641
+ 0.0895
+ 1.1206
+ 1.4424
+ 0.0236
+-0.4609
+ 0.1643
+ 0.6791
+-0.0035
+[ CPUFloatType{12} ]</code></pre>
+</div>
+</div>
+<p>This looks like what we expected: <code>X</code> is a <span class="math inline">\((D \times p)\)</span> tensor and <span class="math inline">\(y\)</span> is just the single output.</p>
+<div class="cell">
+<div class="sourceCode" id="cb7"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>in_idx <span class="ot">&lt;-</span> train_ds<span class="sc">$</span>starts[<span class="dv">1</span>]<span class="sc">:</span>(train_ds<span class="sc">$</span>starts[<span class="dv">1</span>]<span class="sc">+</span>train_ds<span class="sc">$</span>lags<span class="dv">-1</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>out_idx <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">max</span>(in_idx)<span class="sc">+</span><span class="dv">1</span>,response_var_idx)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>X_train <span class="ot">&lt;-</span> <span class="fu">t</span>((<span class="fu">t</span>(df_train) <span class="sc">-</span> <span class="fu">colMeans</span>(df_train)) <span class="sc">/</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(df_train), <span class="cf">function</span>(i) <span class="fu">sd</span>(df_train[,i])))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>X_train[in_idx,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-stdout">
+<pre><code>              e       prod         rw          U
+[1,]  0.1019674 -1.1904140  0.9092028 -0.4763473
+[2,]  0.9908521  0.5093805  1.8195315 -0.4146620
+[3,]  1.1776523  1.1057034  1.2633140  0.2021906
+[4,]  0.6615854 -0.9200533  1.6706661 -0.4969091
+[5,] -0.6956522 -2.2618121 -0.5862564  0.5517404
+[6,] -1.3459703 -1.2137674  3.2111416  1.9088162</code></pre>
+</div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>X_train[out_idx[<span class="dv">1</span>]<span class="sc">:</span>(out_idx[<span class="dv">1</span>]<span class="sc">+</span>n_ahead<span class="dv">-1</span>),out_idx[<span class="dv">2</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-stdout">
+<pre><code> [1] -2.090789787 -2.889711226 -2.966011884 -1.464126631  0.089478145
+ [6]  1.120601201  1.442417457  0.023572063 -0.460867622  0.164265269
+[11]  0.679070086 -0.003545797</code></pre>
+</div>
+</div>
+<p>What about the mini-batch? We see that <code>X</code> is of the desired dimension <code>(batch_size, n_timesteps, num_features)</code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb11"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(train_dl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-stdout">
+<pre><code>[1] 1</code></pre>
+</div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> train_dl <span class="sc">%&gt;%</span> <span class="fu">dataloader_make_iter</span>() <span class="sc">%&gt;%</span> <span class="fu">dataloader_next</span>()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>b</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-stdout">
+<pre><code>$X
+torch_tensor
+(1,.,.) = 
+ -2.0908  0.1093  1.7242  1.0247
+ -2.8897 -1.1323  0.8589  3.2865
+ -2.9660  0.4020  0.2097  3.6360
+ -1.4641 -0.1386  0.6799  1.1686
+  0.0895  1.6895 -1.6889 -0.7025
+  1.1206  0.4061 -0.2826 -0.4147
+
+(2,.,.) = 
+  0.1020 -1.1904  0.9092 -0.4763
+  0.9909  0.5094  1.8195 -0.4147
+  1.1777  1.1057  1.2633  0.2022
+  0.6616 -0.9201  1.6707 -0.4969
+ -0.6957 -2.2618 -0.5863  0.5517
+ -1.3460 -1.2138  3.2111  1.9088
+
+(3,.,.) = 
+ -2.8897 -1.1323  0.8589  3.2865
+ -2.9660  0.4020  0.2097  3.6360
+ -1.4641 -0.1386  0.6799  1.1686
+  0.0895  1.6895 -1.6889 -0.7025
+  1.1206  0.4061 -0.2826 -0.4147
+  1.4424 -0.1345 -0.7919 -1.0932
+
+(4,.,.) = 
+  1.1777  1.1057  1.2633  0.2022
+  0.6616 -0.9201  1.6707 -0.4969
+ -0.6957 -2.2618 -0.5863  0.5517
+ -1.3460 -1.2138  3.2111  1.9088
+ -2.0908  0.1093  1.7242  1.0247
+... [the output was truncated (use n=-1 to disable)]
+[ CPUFloatType{12,6,4} ]
+
+$y
+torch_tensor
+Columns 1 to 10 1.4424  0.0236 -0.4609  0.1643  0.6791 -0.0035 -0.0456  0.8483  0.6847  0.6916
+-2.0908 -2.8897 -2.9660 -1.4641  0.0895  1.1206  1.4424  0.0236 -0.4609  0.1643
+ 0.0236 -0.4609  0.1643  0.6791 -0.0035 -0.0456  0.8483  0.6847  0.6916  0.8213
+-2.9660 -1.4641  0.0895  1.1206  1.4424  0.0236 -0.4609  0.1643  0.6791 -0.0035
+ 0.8213  0.2048 -0.3137 -0.0030  0.1853  1.1057  0.6218  1.1774  0.5537  0.0394
+ 0.6916  0.8213  0.2048 -0.3137 -0.0030  0.1853  1.1057  0.6218  1.1774  0.5537
+-0.4609  0.1643  0.6791 -0.0035 -0.0456  0.8483  0.6847  0.6916  0.8213  0.2048
+ 0.1853  1.1057  0.6218  1.1774  0.5537  0.0394 -0.2996  0.4384  0.9216 -0.6563
+-0.0035 -0.0456  0.8483  0.6847  0.6916  0.8213  0.2048 -0.3137 -0.0030  0.1853
+-0.0456  0.8483  0.6847  0.6916  0.8213  0.2048 -0.3137 -0.0030  0.1853  1.1057
+-0.3137 -0.0030  0.1853  1.1057  0.6218  1.1774  0.5537  0.0394 -0.2996  0.4384
+-1.4641  0.0895  1.1206  1.4424  0.0236 -0.4609  0.1643  0.6791 -0.0035 -0.0456
+
+Columns 11 to 12 0.8213  0.2048
+ 0.6791 -0.0035
+ 0.2048 -0.3137
+-0.0456  0.8483
+-0.2996  0.4384
+ 0.0394 -0.2996
+-0.3137 -0.0030
+-0.1092 -0.0666
+ 1.1057  0.6218
+ 0.6218  1.1774
+ 0.9216 -0.6563
+ 0.8483  0.6847
+[ CPUFloatType{12,12} ]</code></pre>
+</div>
+</div>
+</section>
+<section id="model" class="level2">
+<h2 class="anchored" data-anchor-id="model">Model</h2>
+<div class="cell">
+<div class="sourceCode" id="cb15"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">nn_module</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">type=</span><span class="st">"lstm"</span>, input_size, hidden_size, linear_size, output_size,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">num_layers =</span> <span class="dv">2</span>, <span class="at">dropout =</span> <span class="fl">0.25</span>, <span class="at">linear_dropout =</span> <span class="fl">0.25</span>) {</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>type <span class="ot">&lt;-</span> type</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>num_layers <span class="ot">&lt;-</span> num_layers</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>linear_dropout <span class="ot">&lt;-</span> linear_dropout</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>rnn <span class="ot">&lt;-</span> <span class="cf">if</span> (self<span class="sc">$</span>type <span class="sc">==</span> <span class="st">"gru"</span>) {</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_gru</span>(</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">input_size =</span> input_size,</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">hidden_size =</span> hidden_size,</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">num_layers =</span> num_layers,</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">dropout =</span> dropout,</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">batch_first =</span> <span class="cn">TRUE</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_lstm</span>(</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">input_size =</span> input_size,</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">hidden_size =</span> hidden_size,</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">num_layers =</span> num_layers,</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">dropout =</span> dropout,</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">batch_first =</span> <span class="cn">TRUE</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>mlp <span class="ot">&lt;-</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(hidden_size, linear_size),</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_dropout</span>(linear_dropout),</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(linear_size, output_size)</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">rnn</span>(x)</span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>    x[[<span class="dv">1</span>]][ ,<span class="sc">-</span><span class="dv">1</span>, ..] <span class="sc">%&gt;%</span> </span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">mlp</span>()</span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb16"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>D <span class="ot">&lt;-</span> <span class="fu">dim</span>(train_ds[<span class="dv">1</span>]<span class="sc">$</span>X)[<span class="dv">2</span>]</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>net <span class="ot">&lt;-</span> <span class="fu">model</span>(<span class="at">input_size =</span> D, <span class="at">hidden_size =</span> <span class="dv">32</span>, <span class="at">linear_size =</span> <span class="dv">128</span>, <span class="at">output_size =</span> n_ahead)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>device <span class="ot">&lt;-</span> <span class="fu">torch_device</span>(<span class="cf">if</span> (<span class="fu">cuda_is_available</span>()) <span class="st">"cuda"</span> <span class="cf">else</span> <span class="st">"cpu"</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>net <span class="ot">&lt;-</span> net<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="training" class="level2">
+<h2 class="anchored" data-anchor-id="training">Training</h2>
+<div class="cell">
+<div class="sourceCode" id="cb17"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>optimizer <span class="ot">&lt;-</span> <span class="fu">optim_adam</span>(net<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.001</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>num_epochs <span class="ot">&lt;-</span> <span class="dv">30</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>train_batch <span class="ot">&lt;-</span> <span class="cf">function</span>(b) {</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  optimizer<span class="sc">$</span><span class="fu">zero_grad</span>() <span class="co"># in</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  output <span class="ot">&lt;-</span> <span class="fu">net</span>(b<span class="sc">$</span>X<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device))</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  target <span class="ot">&lt;-</span> b<span class="sc">$</span>y<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  loss <span class="ot">&lt;-</span> <span class="fu">nnf_mse_loss</span>(output, target)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  loss<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  optimizer<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  loss<span class="sc">$</span><span class="fu">item</span>()</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>valid_batch <span class="ot">&lt;-</span> <span class="cf">function</span>(b) {</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  output <span class="ot">&lt;-</span> <span class="fu">net</span>(b<span class="sc">$</span>X<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device))</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  target <span class="ot">&lt;-</span> b<span class="sc">$</span>y<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  loss <span class="ot">&lt;-</span> <span class="fu">nnf_mse_loss</span>(output, target)</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  loss<span class="sc">$</span><span class="fu">item</span>()</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>num_epochs) {</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>  net<span class="sc">$</span><span class="fu">train</span>()</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>  train_loss <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(<span class="cf">for</span> (b <span class="cf">in</span> train_dl) {</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>    loss <span class="ot">&lt;-</span> <span class="fu">train_batch</span>(b)</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>    train_loss <span class="ot">&lt;-</span> <span class="fu">c</span>(train_loss, loss)</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Epoch %d, training: loss: %3.5f </span><span class="sc">\n</span><span class="st">"</span>, epoch, <span class="fu">mean</span>(train_loss)))</span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>  net<span class="sc">$</span><span class="fu">eval</span>()</span>
+<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a>  valid_loss <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(<span class="cf">for</span> (b <span class="cf">in</span> valid_dl) {</span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a>    loss <span class="ot">&lt;-</span> <span class="fu">valid_batch</span>(b)</span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a>    valid_loss <span class="ot">&lt;-</span> <span class="fu">c</span>(valid_loss, loss)</span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Epoch %d, validation: loss: %3.5f </span><span class="sc">\n</span><span class="st">"</span>, epoch, <span class="fu">mean</span>(valid_loss)))</span>
+<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-stdout">
+<pre><code>
+Epoch 1, training: loss: 0.62297 
+
+Epoch 1, validation: loss: 0.79906 
+
+Epoch 2, training: loss: 0.61487 
+
+Epoch 2, validation: loss: 0.78826 
+
+Epoch 3, training: loss: 0.60945 
+
+Epoch 3, validation: loss: 0.77741 
+
+Epoch 4, training: loss: 0.60109 
+
+Epoch 4, validation: loss: 0.76667 
+
+Epoch 5, training: loss: 0.60198 
+
+Epoch 5, validation: loss: 0.75596 
+
+Epoch 6, training: loss: 0.59502 
+
+Epoch 6, validation: loss: 0.74520 
+
+Epoch 7, training: loss: 0.58521 
+
+Epoch 7, validation: loss: 0.73451 
+
+Epoch 8, training: loss: 0.57680 
+
+Epoch 8, validation: loss: 0.72386 
+
+Epoch 9, training: loss: 0.57761 
+
+Epoch 9, validation: loss: 0.71318 
+
+Epoch 10, training: loss: 0.57223 
+
+Epoch 10, validation: loss: 0.70240 
+
+Epoch 11, training: loss: 0.56296 
+
+Epoch 11, validation: loss: 0.69152 
+
+Epoch 12, training: loss: 0.55892 
+
+Epoch 12, validation: loss: 0.68051 
+
+Epoch 13, training: loss: 0.55917 
+
+Epoch 13, validation: loss: 0.66926 
+
+Epoch 14, training: loss: 0.54466 
+
+Epoch 14, validation: loss: 0.65784 
+
+Epoch 15, training: loss: 0.54911 
+
+Epoch 15, validation: loss: 0.64616 
+
+Epoch 16, training: loss: 0.54496 
+
+Epoch 16, validation: loss: 0.63420 
+
+Epoch 17, training: loss: 0.54140 
+
+Epoch 17, validation: loss: 0.62209 
+
+Epoch 18, training: loss: 0.53267 
+
+Epoch 18, validation: loss: 0.60992 
+
+Epoch 19, training: loss: 0.52077 
+
+Epoch 19, validation: loss: 0.59760 
+
+Epoch 20, training: loss: 0.52184 
+
+Epoch 20, validation: loss: 0.58506 
+
+Epoch 21, training: loss: 0.52193 
+
+Epoch 21, validation: loss: 0.57236 
+
+Epoch 22, training: loss: 0.51467 
+
+Epoch 22, validation: loss: 0.55957 
+
+Epoch 23, training: loss: 0.50776 
+
+Epoch 23, validation: loss: 0.54668 
+
+Epoch 24, training: loss: 0.50670 
+
+Epoch 24, validation: loss: 0.53390 
+
+Epoch 25, training: loss: 0.49992 
+
+Epoch 25, validation: loss: 0.52132 
+
+Epoch 26, training: loss: 0.50380 
+
+Epoch 26, validation: loss: 0.50928 
+
+Epoch 27, training: loss: 0.49770 
+
+Epoch 27, validation: loss: 0.49789 
+
+Epoch 28, training: loss: 0.48669 
+
+Epoch 28, validation: loss: 0.48728 
+
+Epoch 29, training: loss: 0.48587 
+
+Epoch 29, validation: loss: 0.47759 
+
+Epoch 30, training: loss: 0.49154 
+
+Epoch 30, validation: loss: 0.46938 </code></pre>
+</div>
+</div>
+</section>
+<section id="evaluation" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
+<p>Below we see the 12-step prediction</p>
+<div class="cell">
+<div class="sourceCode" id="cb19"><pre class="sourceCode r cell-code code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>net<span class="sc">$</span><span class="fu">eval</span>()</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>test_preds <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="at">mode =</span> <span class="st">"list"</span>, <span class="at">length =</span> <span class="fu">length</span>(test_dl))</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>i <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>coro<span class="sc">::</span><span class="fu">loop</span>(<span class="cf">for</span> (b <span class="cf">in</span> test_dl) {</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  input <span class="ot">&lt;-</span> b<span class="sc">$</span>X</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  output <span class="ot">&lt;-</span> <span class="fu">net</span>(input<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device))</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  preds <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(output)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  test_preds[[i]] <span class="ot">&lt;-</span> preds</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  i <span class="ot">&lt;&lt;-</span> i <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>y_hat <span class="ot">&lt;-</span> test_preds[[<span class="dv">1</span>]] <span class="sc">*</span> train_ds<span class="sc">$</span>train_sd[response_var_idx] <span class="sc">+</span> train_ds<span class="sc">$</span>train_mean[response_var_idx]</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>y_hat <span class="ot">&lt;-</span> <span class="fu">data.table</span>(y_hat)[,id<span class="sc">:</span><span class="er">=</span><span class="dv">1</span><span class="sc">:</span>.N][,variable<span class="sc">:</span><span class="er">=</span><span class="fu">colnames</span>(df_train)[response_var_idx]]</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a><span class="fu">setkey</span>(y_hat, id, variable)</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>y_true <span class="ot">&lt;-</span> <span class="fu">data.table</span>(<span class="fu">rbind</span>(df_val,df_test))</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>y_true <span class="ot">&lt;-</span> y_true[,..response_var_idx]</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>y_true[,id<span class="sc">:</span><span class="er">=</span>(<span class="sc">-</span><span class="fu">nrow</span>(df_val)<span class="sc">-</span>lags<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>(<span class="sc">-</span><span class="fu">nrow</span>(df_val)<span class="sc">-</span>lags<span class="sc">+</span>y_true[,.N])]</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>y_true <span class="ot">&lt;-</span> <span class="fu">melt</span>(y_true, <span class="at">id.vars =</span> <span class="st">"id"</span>, <span class="at">value.name =</span> <span class="st">"y"</span>)</span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a><span class="fu">setkey</span>(y_true, id, variable)</span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>dt_plot <span class="ot">&lt;-</span> <span class="fu">melt</span>(y_hat[y_true],<span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">"id"</span>,<span class="st">"variable"</span>), <span class="at">variable.name =</span> <span class="st">"type"</span>)</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>dt_plot[type<span class="sc">==</span><span class="st">"y_hat"</span> <span class="sc">&amp;</span> id<span class="sc">==</span><span class="dv">0</span>, value<span class="sc">:</span><span class="er">=</span>dt_plot[type<span class="sc">==</span><span class="st">"y"</span> <span class="sc">&amp;</span> id<span class="sc">==</span><span class="dv">0</span>]<span class="sc">$</span>value]</span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dt_plot[id<span class="sc">&lt;=</span>n_ahead], <span class="fu">aes</span>(<span class="at">x=</span>id, <span class="at">y=</span>value, <span class="at">colour=</span>type)) <span class="sc">+</span></span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">name=</span><span class="st">"Type:"</span>, <span class="at">values=</span><span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>), <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Prediction"</span>, <span class="st">"Actual"</span>)) <span class="sc">+</span></span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="fu">sprintf</span>(<span class="st">"Variable: %s"</span>, <span class="fu">colnames</span>(df_train)[response_var_idx]),</span>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Time"</span>,</span>
+<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Value"</span></span>
+<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="rnn_torch_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+
+
+</section>
+</main> <!-- /main -->
+<script type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    setTimeout(function() {
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+</body></html>
