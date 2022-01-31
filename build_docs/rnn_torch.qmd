@@ -279,5 +279,11 @@ ggplot(dt_plot[id<=n_ahead], aes(x=id, y=value, colour=type)) +
     x = "Time",
     y = "Value"
   )
-  
 ```
+
+## Wrapping up
+
+```{r}
+
+```
+

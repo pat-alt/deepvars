@@ -1,5 +1,5 @@
 # Prepare data for RNN: ----
-dvar_dataset <- dataset(
+dvar_dataset <- torch::dataset(
   name = "dvar_dataset",
 
   initialize = function(X, response, lags, n_ahead, sample_frac = 1) {
@@ -10,7 +10,7 @@ dvar_dataset <- dataset(
     self$response <- response
     self$train_mean <- colMeans(X)
     self$train_sd <- sapply(1:ncol(X), function(i) sd(X[,i]))
-    self$X <- torch_tensor(t((t(X) - self$train_mean)/self$train_sd)) # of dimension (D x T)
+    self$X <- torch::torch_tensor(t((t(X) - self$train_mean)/self$train_sd)) # of dimension (D x T)
 
     n <- dim(self$X)[1] - self$lags - self$n_ahead + 1
 
@@ -39,18 +39,21 @@ dvar_dataset <- dataset(
   }
 )
 
-# Perpare the RNN: ----
-model <- nn_module(
+# Prepare the RNN: ----
+RNN <- torch::nn_module(
 
-  initialize = function(type="lstm", input_size, hidden_size, linear_size, output_size,
-                        num_layers = 2, dropout = 0.25, linear_dropout = 0.25) {
+  initialize = function(
+    type="lstm",
+    input_size, hidden_size, linear_size, output_size, num_layers = 2,
+    dropout = 0.25, linear_dropout = 0.25
+  ) {
 
     self$type <- type
     self$num_layers <- num_layers
     self$linear_dropout <- linear_dropout
 
     self$rnn <- if (self$type == "gru") {
-      nn_gru(
+      torch::nn_gru(
         input_size = input_size,
         hidden_size = hidden_size,
         num_layers = num_layers,
@@ -58,7 +61,7 @@ model <- nn_module(
         batch_first = TRUE
       )
     } else {
-      nn_lstm(
+      torch::nn_lstm(
         input_size = input_size,
         hidden_size = hidden_size,
         num_layers = num_layers,
@@ -67,11 +70,11 @@ model <- nn_module(
       )
     }
 
-    self$mlp <- nn_sequential(
-      nn_linear(hidden_size, linear_size),
-      nn_relu(),
-      nn_dropout(linear_dropout),
-      nn_linear(linear_size, output_size)
+    self$mlp <- torch::nn_sequential(
+      torch::nn_linear(hidden_size, linear_size),
+      torch::nn_relu(),
+      torch::nn_dropout(linear_dropout),
+      torch::nn_linear(linear_size, output_size)
     )
 
   },
@@ -89,6 +92,8 @@ model <- nn_module(
 # Training: ----
 train_batch <- function(rnn, b, loss, optim) {
 
+  device <- getOption("deepvar.device")
+
   optim$zero_grad() # in
   output <- rnn(b$X$to(device = device))
   target <- b$y$to(device = device)
@@ -102,6 +107,8 @@ train_batch <- function(rnn, b, loss, optim) {
 
 valid_batch <- function(rnn, b, loss) {
 
+  device <- getOption("deepvar.device")
+
   output <- rnn(b$X$to(device = device))
   target <- b$y$to(device = device)
 
@@ -110,13 +117,10 @@ valid_batch <- function(rnn, b, loss) {
 
 }
 
-forward_rnn <- function(
-  rnn, train_dl, valid_dl,
-  loss=torch::nnf_mse_loss,
-  optim=torch::optim_adam(rnn$parameters, lr = 0.001),
-  verbose=FALSE,
-  tau = 0.1
-) {
+forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, num_epochs, verbose=FALSE, tau = 0.1) {
+
+  device <- getOption("deepvar.device")
+  optim <- do.call(optim_fun, c(params = list(rnn$parameters), optim_args))
 
   # Helper function to train on mini-batches:
   train_batches <- function() {
@@ -144,7 +148,7 @@ forward_rnn <- function(
   valid_loss_change_trailing <- Inf
   epoch <- 1
 
-  while (epoch <= num_epochs && valid_loss_change_trailing > tau) {
+  while (epoch <= num_epochs) {
 
     train_loss <- train_batches()
     if (verbose) {
@@ -169,7 +173,10 @@ forward_rnn <- function(
     epoch <- epoch + 1
 
   }
+
 }
+
+
 
 
 

@@ -6,14 +6,11 @@
 \usage{
 deepvareg(
   data,
-  lags = 1,
-  num_units = 50,
-  num_layers = 2,
-  p_drop_out = 0.5,
-  horizon = 1,
-  type = "var",
-  verbose = 0,
-  ...
+  lags,
+  response = NULL,
+  n_ahead = 1,
+  size_ensemble = 5,
+  num_epochs = 50
 )
 }
 \arguments{

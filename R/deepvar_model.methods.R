@@ -1,40 +1,71 @@
-# Fit model: ----
-#' @importFrom keras `%>%`
-fit.deepvar_model <- function(deepvar_model,verbose=0,...) {
+#' Title
+#'
+#' @param deepvar_model
+#' @param num_epochs
+#'
+#' @return
+#' @export
+#'
+#' @importFrom foreach `%dopar%` `%:%` `%do%`
+#'
+#' @examples
+train.deepvar_model <- function(deepvar_model,num_epochs=50) {
 
-  K <- deepvar_model$model_data$K
-  X_train <- deepvar_model$model_data$X
-  y_train <- deepvar_model$model_data$y
+  # Setup:
+  list2env(getOption("deepvar.train"), envir = environment()) # load training options
+  verbose <- getOption("deepvar.verbose")
 
-  # Fit models:
-  fitted_models <- lapply(
-    1:K,
-    function(k) {
-      history <- deepvar_model$model_list[[k]] %>%
-        keras::fit(
-          x = X_train, y = y_train[,,k],
+  if (parallelize) {
+    # Set up cluster
+    no_cores <- parallel::detectCores() - 1
+    cl <- parallel::makeCluster(no_cores, type = "FORK")
+    doParallel::registerDoParallel(cl)
+    # Train ensembles in parallel:
+    foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
+      foreach::foreach(m = 1:size_ensemble) %dopar% {
+        if (verbose) {
+          message(sprintf("Training model %i for response %i",m,k))
+        }
+        forward_rnn(
+          rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
+          train_dl = deepvar_model$model_list[[k]]$train_dl,
+          valid_dl = deepvar_model$model_list[[k]]$valid_dl,
+          loss = loss,
+          optim_fun = optim_fun,
+          optim_args = optim_args,
+          num_epochs = num_epochs,
           verbose = verbose,
-          ...
+          tau = tau
         )
-      list(
-        model = deepvar_model$model_list[[k]],
-        history = history
-      )
-    }
-  )
-
-  # Output:
-  deepvar_model$model_list <- lapply(fitted_models, function(fitted_model) fitted_model[["model"]]) # update model list
-  deepvar_model$model_histories <- lapply(fitted_models, function(fitted_model) fitted_model[["history"]]) # extract history
-  deepvar_model$X_train <- X_train
-  deepvar_model$y_train <- y_train
+      }
+  } else {
+    # Train ensembles:
+    foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
+      foreach::foreach(m = 1:size_ensemble) %do% {
+        if (verbose) {
+          message(sprintf("Training model %i for response %i",m,k))
+        }
+        forward_rnn(
+          rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
+          train_dl = deepvar_model$model_list[[k]]$train_dl,
+          valid_dl = deepvar_model$model_list[[k]]$valid_dl,
+          loss = loss,
+          optim_fun = optim_fun,
+          optim_args = optim_args,
+          num_epochs = num_epochs,
+          verbose = verbose,
+          tau = tau
+        )
+      }
+  }
 
   return(deepvar_model)
 
 }
 
-fit <- function(deepvar_model,...) {
-  UseMethod("fit", deepvar_model)
+#' @export
+train <- function(deepvar_model,num_epochs=50) {
+  UseMethod("train", deepvar_model)
 }
 
 ## Predictions: ----
