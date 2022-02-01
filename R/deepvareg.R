@@ -26,7 +26,7 @@ deepvareg <- function(
   # Train the model:
   deepvar_model <- train(deepvar_model, num_epochs)
 
-  class(deepvar_model) <- c("deepvar_model", "dvars_model") # assign broader model class
+  class(deepvar_model) <- c("deepvar_model", "model") # assign broader model class
 
   return(deepvar_model)
 

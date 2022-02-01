@@ -130,7 +130,7 @@ vareg <- function(data, lags=1, method="ols", constant=TRUE, ci=.95, standardize
     coeff_tidy = coeff_tidy,
     model_data = var_data
   )
-  class(var_model) <- c("var_model", "dvars_model")
+  class(var_model) <- c("var_model", "model")
 
   return(var_model)
 }

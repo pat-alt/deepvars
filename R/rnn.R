@@ -1,6 +1,6 @@
 # Prepare data for RNN: ----
-dvar_dataset <- torch::dataset(
-  name = "dvar_dataset",
+deepvar_dataset <- torch::dataset(
+  name = "deepvar_dataset",
 
   initialize = function(X, response, lags, n_ahead, sample_frac = 1, train_mean, train_sd) {
 
@@ -38,8 +38,8 @@ dvar_dataset <- torch::dataset(
   }
 )
 
-dvar_input_data <- torch::dataset(
-  name = "dvar_input_data",
+deepvar_input_data <- torch::dataset(
+  name = "deepvar_input_data",
 
   initialize = function(X, lags, train_mean, train_sd, use_last=TRUE) {
 

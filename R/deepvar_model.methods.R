@@ -165,7 +165,7 @@ predict.deepvar_model <- function(deepvar_model, n.ahead=NULL) {
   N <- deepvar_model$model_data$N
   input_ds <- deepvar_model$model_data$data[(N - lags + 1):N,] |> as.matrix()
   input_dl <- input_ds |>
-    dvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
+    deepvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
     torch::dataloader(batch_size = lags)
   preds <- fitted(deepvar_model, input_dl = input_dl)$all
 
@@ -183,7 +183,7 @@ predict.deepvar_model <- function(deepvar_model, n.ahead=NULL) {
       input_ds <- rbind(input_ds, first_out_of_sample)
       input_ds <- input_ds[(nrow(input_ds) - lags + 1):nrow(input_ds),] # get past data
       input_dl <- input_ds |>
-        dvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
+        deepvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
         torch::dataloader(batch_size = lags)
       recursive_preds <- fitted(deepvar_model, input_dl = input_dl)$all
       preds <- lapply(1:length(preds), function(k) rbind(preds[[k]], recursive_preds[[k]][lags,]))

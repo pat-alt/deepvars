@@ -25,7 +25,7 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
   train_dl <- lapply(
     response,
     function(response_var) {
-      dvar_dataset(train_ds, response_var, lags, n_ahead, sample_frac = sample_frac, train_mean, train_sd) |>
+      deepvar_dataset(train_ds, response_var, lags, n_ahead, sample_frac = sample_frac, train_mean, train_sd) |>
         torch::dataloader(batch_size = batch_size)
     }
   )
@@ -34,17 +34,17 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
   valid_dl <- lapply(
     response,
     function(response_var) {
-      dvar_dataset(valid_ds, response_var, lags, n_ahead, sample_frac = sample_frac, train_mean, train_sd) |>
+      deepvar_dataset(valid_ds, response_var, lags, n_ahead, sample_frac = sample_frac, train_mean, train_sd) |>
         torch::dataloader(batch_size = 1)
     }
   )
 
   # Full data set as input (for fitted values etc.):
-  full_dl <- dvar_input_data(as.matrix(data), lags = lags, train_mean = train_mean, train_sd = train_sd, use_last=FALSE) |>
+  full_dl <- deepvar_input_data(as.matrix(data), lags = lags, train_mean = train_mean, train_sd = train_sd, use_last=FALSE) |>
     torch::dataloader(batch_size = N)
 
   # Output:
-  dvar_data <- list(
+  deepvar_data <- list(
     train_dl=train_dl,
     valid_dl=valid_dl,
     full_dl=full_dl,
@@ -61,9 +61,9 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
     var_names=var_names,
     response_var_names=var_names[response]
   )
-  class(dvar_data) <- "dvar_data"
+  class(deepvar_data) <- "deepvar_data"
 
-  return(dvar_data)
+  return(deepvar_data)
 }
 
 train_val_split <- function(data, train_size) {
