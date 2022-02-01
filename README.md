@@ -30,33 +30,6 @@ first version of the working paper see
 
 ## Installation
 
-### Prerequisites
-
-As one of its dependencies the `deepvars` uses `tensorflow`, which is an
-R interface to the popular [TensorFlow](https://www.tensorflow.org)
-library. We have tried to automate the TensorFlow configuration as
-explained
-[here](https://rstudio.github.io/reticulate/articles/python_dependencies.html).
-
-``` r
-install.packages("tensorflow")
-tensorflow::install_tensorflow()
-```
-
-For uncertainty quantification we use `tensorflow_probability` for
-Bayesian inference.
-
-``` r
-install.packages("tfprobability")
-tfprobability::install_tfprobability()
-```
-
-Should you run into issues you may have to manually install the
-TensorFlow dependencies. Detailed instructions to this end can be found
-[here](https://tensorflow.rstudio.com/installation/).
-
-### Install
-
 You can either clone this repository and install from source or simply
 run the below in R:
 
@@ -78,7 +51,7 @@ utils::browseVignettes('deepvars')
 
 ## Disclaimer
 
-*Date*: 2 December, 2021.
+*Date*: 1 Februar, 2022.
 
 This package was developed in tandem with the initial research for my
 masters thesis. Documentation is incomplete and it should at this point

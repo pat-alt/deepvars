@@ -15,6 +15,7 @@
 
 ## Dependencies ----
 ## Add one line by package you want to add as dependency
+usethis::use_package("coro", min_version = TRUE)
 usethis::use_package("parallel", min_version = TRUE)
 usethis::use_package("doParallel", min_version = TRUE)
 usethis::use_package("foreach", min_version = TRUE)
@@ -61,7 +62,6 @@ usethis::use_data(canada, internal = FALSE, overwrite = TRUE)
 # Documentation
 
 ## Vignette ----
-usethis::use_vignette("Intro")
 usethis::use_vignette("VARs")
 usethis::use_vignette("SVARs")
 usethis::use_vignette("deep_vars")

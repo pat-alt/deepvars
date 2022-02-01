@@ -1,59 +1,30 @@
-## Loss: ----
-#' @export
-loss.model <- function(model, X=NULL, y=NULL) {
-  res <- data.table::data.table(residuals(model, X=X, y=y))
-  lags <- model$model_data$lags
-  res[,date:=model$model_data$data[,date][(lags+1):(.N+lags)]]
-  res <- data.table::melt(res, id.vars="date")
-  return(res)
-}
-
-#' @export
-loss <- function(model, X=NULL, y=NULL) {
-  UseMethod("loss", model)
-}
-
-## Mean squared error (MSE): ----
-#' @export
-mse.model <- function(model, X=NULL, y=NULL) {
-
-  res <- loss(model, X=X, y=y)
-  mse <- res[,.(value=mean((value)^2)),by=variable]
-
-  return(mse)
-}
-
-#' @export
-mse <- function(model, X=NULL, y=NULL) {
-  UseMethod("mse", model)
-}
-
-## Root mean squared error (RMSE): ----
-#' @export
-rmse.model <- function(model, X=NULL, y=NULL) {
-
-  res <- loss(model, X=X, y=y)
-  rmse <- res[,.(value=sqrt(mean((value)^2))),by=variable]
-
-  return(rmse)
-}
-
-#' @export
-rmse <- function(model, X=NULL, y=NULL) {
-  UseMethod("rmse", model)
-}
-
 ## Cumulative loss: ----
 #' @export
-cum_loss.model <- function(model, X=NULL, y=NULL) {
-
-  res <- loss(model, X=X, y=y)
-  cum_loss <- list(cum_loss = res[,.(date=date, value=cumsum(value^2)),by=variable])
+cum_loss.model <- function(model) {
+  cum_loss <- sapply(1:ncol(model$res), function(k) cumsum(model$res[,k]**2))
   class(cum_loss) <- "cum_loss"
   return(cum_loss)
 }
 
 #' @export
-cum_loss <- function(model, X=NULL, y=NULL) {
+cum_loss <- function(model) {
   UseMethod("cum_loss", model)
 }
+
+#' @export
+plot.cum_loss <- function(cum_loss, date=NULL) {
+  cum_loss <- data.table::data.table(cum_loss)
+  if (is.null(date)) {
+    cum_loss[,date:=1:.N] |> data.table::melt(id.vars=c("date"))
+  }
+  p <- ggplot2::ggplot(data = cum_loss, ggplot2::aes(x=date, y=value)) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(.~variable, scales = "free_y") +
+    ggplot2::labs(
+      x="Date",
+      y="Squared error"
+    )
+  p
+  return(p)
+}
+

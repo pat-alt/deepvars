@@ -27,7 +27,7 @@ lag_order <- function(data, max_lag=10, ic_choice="AIC", type="const") {
 
       # Fit model:
       X_temp <- X[,1:lag_idx[m]] # use only past m lags
-      res <- lm.fit(x=X_temp, y=y)$residuals
+      res <- lm.fit(x=X_temp, y=y)$res
       Sigma_res <- crossprod(res)/N
 
       # Compute criteria:

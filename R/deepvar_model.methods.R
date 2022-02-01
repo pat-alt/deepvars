@@ -66,7 +66,7 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
   if (deepvar_model$model_data$n_ahead > 1) {
     deepvar_model$all_fitted_values <- fitted_values$all
   }
-  deepvar_model$residuals <- residuals(deepvar_model)
+  deepvar_model$res <- residuals(deepvar_model)
 
   return(deepvar_model)
 
@@ -128,12 +128,18 @@ fitted.deepvar_model <- function(deepvar_model, input_dl=NULL) {
 }
 
 #' @export
-uncertainty.deepvar_model <- function(deepvar_model, X=NULL) {
-  return(NULL)
+uncertainty.deepvar_model <- function(deepvar_model) {
+  uncertainty <- matrix(
+    rep(NA,deepvar_model$model_data$N),
+    ncol = deepvar_model$model_data$K,
+    byrow = TRUE
+  )
+  colnames(uncertainty) <- deepvar_model$model_data$response_var_names
+  return(uncertainty)
 }
 
 #' @export
-uncertainty <- function(deepvar_model, X=NULL) {
+uncertainty <- function(deepvar_model) {
   UseMethod("uncertainty", deepvar_model)
 }
 
@@ -190,35 +196,17 @@ predict.deepvar_model <- function(deepvar_model, n.ahead=NULL) {
     }
   }
 
-  return(preds)
-}
+  # Turn into matrix:
+  preds <- sapply(preds, function(pred) pred)
 
-#' #' @export
-#' prepare_predictors.deepvar_model <- function(deepvar_model, data) {
-#'
-#'   lags <- deepvar_model$model_data$lags
-#'
-#'   # Explanatory variables:
-#'   X = as.matrix(
-#'     data[
-#'       (.N-(lags-1)):.N, # take last p rows
-#'       sapply(
-#'         0:(lags-1),
-#'         function(lag) {
-#'           data.table::shift(.SD, lag)
-#'         }
-#'       )
-#'       ][.N,] # take last row of that
-#'   )
-#'
-#'   X <- keras::array_reshape(X, dim = c(1,1,ncol(X)))
-#'
-#'   return(X)
-#'
-#' }
-#'
-#' #' @export
-#' prepare_predictors <- function(deepvar_model, data) {
-#'   UseMethod("prepare_predictors", deepvar_model)
-#' }
+  # Return predictions:
+  prediction <- list(
+    prediction = preds,
+    uncertainty = uncertainty(deepvar_model),
+    model_data = deepvar_model$model_data
+  )
+  class(prediction) <- "prediction"
+
+  return(prediction)
+}
 

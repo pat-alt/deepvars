@@ -20,7 +20,8 @@ knitr::opts_chunk$set(
   comment = "#>",
   echo=FALSE,
   warning = FALSE, 
-  message = FALSE
+  message = FALSE,
+  eval=FALSE
 )
 ```
 

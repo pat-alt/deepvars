@@ -20,7 +20,8 @@ knitr::opts_chunk$set(
   comment = "#>",
   echo=FALSE,
   warning = FALSE, 
-  message = FALSE
+  message = FALSE,
+  eval=FALSE
 )
 ```
 
@@ -74,7 +75,7 @@ $$
 
 The `VAR` function can be used to estimate the VAR by least-squares or MLE. All estimations are run on an example data set. 
 
-```{r example-data}
+```{r example-data, eval=TRUE}
 dt = data.table::data.table(deepvars::canada)
 var_cols = colnames(dt)[2:ncol(dt)]
 print(head(dt))
@@ -97,7 +98,7 @@ ggplot2::ggplot(chart_data) +
 ```
 
 
-```{r}
+```{r, eval=TRUE}
 lags = 3
 ```
 
@@ -146,7 +147,7 @@ invisible(VAR_stable(vareg(dt, lag=3))$test_result)
 
 Finally, let's turn to selecting the right lag length for our estimation. The most common way to select the lag-length is through information criteria, which can be down using the `VAR_lag_select` function.By default the maximum considered lag length is set to 10 and the Akaike Information Criterium is used. Applying the function to the data in differences yields
 
-```{r}
+```{r, eval=TRUE}
 lag_selection = lag_order(dt[,.SD,.SDcols=var_cols])
 knitr::kable(lag_selection$criteria_overview)
 lag = lag_selection$p
@@ -169,7 +170,7 @@ plot(fitted_values, y_true=var_model$y_train)
 
 ### Prediction
 
-```{r}
+```{r, eval=TRUE}
 n = 10
 fig_cap = sprintf("%i-step ahead predictions from estimated VAR.",n)
 ```
