@@ -16,6 +16,7 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
   verbose <- getOption("deepvar.verbose")
 
   if (parallelize) {
+    stop("Sorry, running deep ensemble in parallel is not yet supported.")
     # Set up cluster
     no_cores <- parallel::detectCores() - 1
     cl <- parallel::makeCluster(no_cores, type = "FORK")
@@ -59,6 +60,8 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
       }
   }
 
+  deepvar_model$fitted_values <- fitted(deepvar_model)
+
   return(deepvar_model)
 
 }
@@ -70,72 +73,52 @@ train <- function(deepvar_model,num_epochs=50) {
 
 ## Predictions: ----
 #' @export
-posterior_predictive.deepvar_model <- function(deepvar_model, X=NULL) {
+fitted.deepvar_model <- function(deepvar_model) {
 
-  if (is.null(X) & !is.null(deepvar_model$y_hat)) {
-    y_hat <- deepvar_model$y_hat
-  } else {
-
-    # Preprocessing:
-    if (is.null(X)) {
-      X <- deepvar_model$X_train
-    }
-    if (length(dim(X))<3) {
-      # ! If new data is not 3D tensor, assume that unscaled 2D tensor was supplied !
-      # Get rid of constant:
-      if (all(X[,1]==1)) {
-        X <- X[,-1]
-      }
-      # Apply scaling:
-      scaler <- deepvar_model$model_data$scaler
-      lags <- deepvar_model$model_data$lags
-      K <- deepvar_model$model_data$K
-      X <- apply_scaler_from_training(X, scaler, lags, K)
-      # Reshape:
-      X <- keras::array_reshape(X, dim=c(dim(X)[1],1,dim(X)[2]))
-    }
-
-    # Compute fitted values:
-    fitted <- lapply(
+  if (is.null(deepvar_model$fitted_values)) {
+    fitted_values <- lapply(
       1:length(deepvar_model$model_list),
       function(k) {
-        mod <- deepvar_model$model_list[[k]]
-        fitted <- mod(X)
-        y_hat <- as.numeric(fitted %>% tfprobability::tfd_mean())
-        sd <- as.numeric(fitted %>% tfprobability::tfd_stddev())
-        # Rescale data:
-        y_hat <- invert_scaling(y_hat, deepvar_model$model_data, k=k)
-        sd <- invert_scaling(sd, deepvar_model$model_data, k=k)
-        return(list(y_hat=unlist(y_hat), sd=unlist(sd)))
+        full_dl <- deepvar_model$model_data$full_dl[[k]]
+        ensemble <- deepvar_model$model_list[[k]]$ensemble
+        preds <- lapply(
+          1:length(ensemble),
+          function(m) {
+            rnn <- ensemble[[m]]
+            i <- 1
+            coro::loop(for (b in full_dl) {
+              input <- b$X
+              output <- rnn(input$to(device = getOption("deepvar.device")))
+              preds <- as.matrix(output)
+            })
+            return(preds)
+          }
+        )
+        y_hat <- Reduce(`+`, preds)/length(preds) # average over ensembles
+        y_hat <- y_hat * deepvar_model$model_list[[k]]$train_dl$dataset$train_sd[k] + deepvar_model$model_list[[k]]$train_dl$dataset$train_mean[k]
+        return(y_hat)
       }
     )
-    # Posterior mean:
-    y_hat <- matrix(sapply(fitted, function(i) i$y_hat), ncol = deepvar_model$model_data$K)
-    rownames(y_hat) <- NULL
-    colnames(y_hat) <- deepvar_model$model_data$var_names
-    # Posterior variance:
-    sd <- matrix(sapply(fitted, function(i) i$sd), ncol = deepvar_model$model_data$K)
-    rownames(sd) <- NULL
-    colnames(sd) <- deepvar_model$model_data$var_names
-  }
-
-  return(list(mean=y_hat, sd=sd))
-}
-
-#' @export
-posterior_predictive <- function(deepvar_model, X=NULL) {
-  UseMethod("posterior_predictive", deepvar_model)
-}
-
-#' @export
-fitted.deepvar_model <- function(deepvar_model, X=NULL) {
-  if (is.null(X)) {
-    y_hat <- deepvar_model$posterior_predictive$mean
   } else {
-    y_hat <- posterior_predictive(deepvar_model, X)$mean
+    fitted_values <- deepvar_model$fitted_values
   }
-  return(y_hat)
+  return(fitted_values)
 }
+
+#' #' @export
+#' fitted <- function(deepvar_model) {
+#'   UseMethod("fitted", deepvar_model)
+#' }
+
+#' #' @export
+#' fitted.deepvar_model <- function(deepvar_model, X=NULL) {
+#'   if (is.null(X)) {
+#'     y_hat <- deepvar_model$posterior_predictive$mean
+#'   } else {
+#'     y_hat <- posterior_predictive(deepvar_model, X)$mean
+#'   }
+#'   return(y_hat)
+#' }
 
 #' @export
 uncertainty.deepvar_model <- function(deepvar_model, X=NULL) {

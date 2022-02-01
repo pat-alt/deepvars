@@ -40,7 +40,7 @@ prepare_deepvar_model <- function(deepvar_data, size_ensemble) {
 
   deepvar_model <- list(
     model_list = model_list,
-    # model_data = deepvar_data,
+    model_data = deepvar_data,
     size_ensemble = size_ensemble
   )
   class(deepvar_model) <- "deepvar_model"

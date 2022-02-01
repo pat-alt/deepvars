@@ -15,7 +15,7 @@ deepvareg <- function(
   lags,
   response=NULL,
   n_ahead=1,
-  size_ensemble=5,
+  size_ensemble=1,
   num_epochs=50
 ) {
 
