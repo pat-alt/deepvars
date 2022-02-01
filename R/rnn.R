@@ -2,14 +2,13 @@
 dvar_dataset <- torch::dataset(
   name = "dvar_dataset",
 
-  initialize = function(X, response, lags, n_ahead, sample_frac = 1) {
-
+  initialize = function(X, response, lags, n_ahead, sample_frac = 1, train_mean, train_sd) {
 
     self$lags <- lags
     self$n_ahead <- n_ahead
     self$response <- response
-    self$train_mean <- colMeans(X)
-    self$train_sd <- sapply(1:ncol(X), function(i) sd(X[,i]))
+    self$train_mean <- train_mean
+    self$train_sd <- train_sd
     self$X <- torch::torch_tensor(t((t(X) - self$train_mean)/self$train_sd)) # of dimension (D x T)
 
     n <- dim(self$X)[1] - self$lags - self$n_ahead + 1
@@ -51,6 +50,7 @@ RNN <- torch::nn_module(
     self$type <- type
     self$num_layers <- num_layers
     self$linear_dropout <- linear_dropout
+    self$output_size <- output_size
 
     self$rnn <- if (self$type == "gru") {
       torch::nn_gru(
@@ -70,6 +70,7 @@ RNN <- torch::nn_module(
       )
     }
 
+    # An MLP for multi-step ahead predictions:
     self$mlp <- torch::nn_sequential(
       torch::nn_linear(hidden_size, linear_size),
       torch::nn_relu(),
@@ -77,13 +78,21 @@ RNN <- torch::nn_module(
       torch::nn_linear(linear_size, output_size)
     )
 
+    # A simple output layer:
+    self$output <- torch::nn_linear(hidden_size, 1)
+
   },
 
   forward = function(x) {
 
-    x <- self$rnn(x)
-    x[[1]][ ,-1, ..] %>%
-      self$mlp()
+    x <- self$rnn(x)[[1]][,-1,]
+    if (self$output_size > 1) {
+      # If multi-step ahead, send final time step through MLP:
+      x |> self$mlp()
+    } else {
+      # Else just return output:
+      x |> self$output()
+    }
 
   }
 

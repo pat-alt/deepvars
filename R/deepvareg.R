@@ -16,7 +16,7 @@ deepvareg <- function(
   response=NULL,
   n_ahead=1,
   size_ensemble=1,
-  num_epochs=50
+  num_epochs=100
 ) {
 
   # Prepare data:
@@ -25,10 +25,6 @@ deepvareg <- function(
   deepvar_model <- prepare_deepvar_model(deepvar_data, size_ensemble)
   # Train the model:
   deepvar_model <- train(deepvar_model, num_epochs)
-  # Posterior predictive:
-  deepvar_model$posterior_predictive <- posterior_predictive(deepvar_model)
-  # Fitted values:
-  deepvar_model$y_hat <- deepvar_model$posterior_predictive$mean
   # Predictive uncertainty:
   deepvar_model$uncertainty <- deepvar_model$posterior_predictive$sd
   # Residuals:

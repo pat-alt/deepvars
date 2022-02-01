@@ -11,17 +11,21 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
     response <- 1:K
   }
   # Batch size:
-  if (is.null(batch_size)) {
-    batch_size <- round(0.2 * N)
+  if (batch_size < 1) {
+    batch_size <- round(batch_size * N)
   }
   # Train/validation split:
   list2env(train_val_split(data, train_size = train_size), envir = environment())
+
+  # Normalizing features:
+  train_mean <- colMeans(train_ds)
+  train_sd <- sapply(1:ncol(train_ds), function(i) sd(train_ds[,i]))
 
   # Training data sets:
   train_dl <- lapply(
     response,
     function(response_var) {
-      dvar_dataset(train_ds, response_var, lags, n_ahead, sample_frac = sample_frac) |>
+      dvar_dataset(train_ds, response_var, lags, n_ahead, sample_frac = sample_frac, train_mean, train_sd) |>
         torch::dataloader(batch_size = batch_size)
     }
   )
@@ -30,7 +34,7 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
   valid_dl <- lapply(
     response,
     function(response_var) {
-      dvar_dataset(valid_ds, response_var, lags, n_ahead, sample_frac = sample_frac) |>
+      dvar_dataset(valid_ds, response_var, lags, n_ahead, sample_frac = sample_frac, train_mean, train_sd) |>
         torch::dataloader(batch_size = 1)
     }
   )
@@ -39,7 +43,7 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
   full_dl <- lapply(
     response,
     function(response_var) {
-      dvar_dataset(as.matrix(data), response_var, lags, n_ahead, sample_frac = 1.0) |>
+      dvar_dataset(as.matrix(data), response_var, lags, n_ahead, sample_frac = 1.0, train_mean, train_sd) |>
         torch::dataloader(batch_size = N)
     }
   )
@@ -56,7 +60,9 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
     N=N,
     var_names=var_names,
     data=data,
-    data_opts=getOption("deepvar.data")
+    data_opts=getOption("deepvar.data"),
+    train_mean=train_mean,
+    train_sd=train_sd
   )
   class(dvar_data) <- "dvar_data"
 

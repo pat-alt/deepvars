@@ -60,7 +60,13 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
       }
   }
 
-  deepvar_model$fitted_values <- fitted(deepvar_model)
+  # Output:
+  fitted_values <- fitted(deepvar_model)
+  deepvar_model$fitted_values <- fitted_values$one_step_ahead
+  if (deepvar_model$model_data$n_ahead > 1) {
+    deepvar_model$all_fitted_values <- fitted_values$all
+  }
+  deepvar_model$residuals <- residuals(deepvar_model)
 
   return(deepvar_model)
 
@@ -76,7 +82,7 @@ train <- function(deepvar_model,num_epochs=50) {
 fitted.deepvar_model <- function(deepvar_model) {
 
   if (is.null(deepvar_model$fitted_values)) {
-    fitted_values <- lapply(
+    all_fitted <- lapply(
       1:length(deepvar_model$model_list),
       function(k) {
         full_dl <- deepvar_model$model_data$full_dl[[k]]
@@ -99,35 +105,21 @@ fitted.deepvar_model <- function(deepvar_model) {
         return(y_hat)
       }
     )
+    one_step_ahead_fitted <- sapply(all_fitted, function(i) i[,1])
   } else {
-    fitted_values <- deepvar_model$fitted_values
+    all_fitted <- deepvar_model$fitted_values
+    one_step_ahead_fitted <- deepvar_model$fitted_values
   }
+  fitted_values <- list(
+    one_step_ahead = one_step_ahead_fitted,
+    all = all_fitted
+  )
   return(fitted_values)
 }
 
-#' #' @export
-#' fitted <- function(deepvar_model) {
-#'   UseMethod("fitted", deepvar_model)
-#' }
-
-#' #' @export
-#' fitted.deepvar_model <- function(deepvar_model, X=NULL) {
-#'   if (is.null(X)) {
-#'     y_hat <- deepvar_model$posterior_predictive$mean
-#'   } else {
-#'     y_hat <- posterior_predictive(deepvar_model, X)$mean
-#'   }
-#'   return(y_hat)
-#' }
-
 #' @export
 uncertainty.deepvar_model <- function(deepvar_model, X=NULL) {
-  if (is.null(X)) {
-    uncertainty <- deepvar_model$posterior_predictive$sd
-  } else {
-    uncertainty <- posterior_predictive(deepvar_model, X)$sd
-  }
-  return(uncertainty)
+  return(NULL)
 }
 
 #' @export
@@ -136,53 +128,51 @@ uncertainty <- function(deepvar_model, X=NULL) {
 }
 
 #' @export
-residuals.deepvar_model <- function(deepvar_model, X=NULL, y=NULL) {
+residuals.deepvar_model <- function(deepvar_model) {
 
-  new_data <- new_data_supplied(X=X,y=y)
-
-  if (new_data | is.null(deepvar_model$res)) {
-    if (!new_data) {
-      X <- deepvar_model$X_train
-      y <- deepvar_model$y_train
-    }
-    y_hat <- fitted(deepvar_model, X=X)
-    y <- keras::array_reshape(y, dim=c(dim(y)[1],dim(y)[3]))
-    y <- invert_scaling(y, deepvar_model$model_data)
-    res <- y - y_hat
+  if (is.null(deepvar_model$res)) {
+    y_hat <- deepvar_model$fitted_values
+    lags <- deepvar_model$model_data$lags
+    n_ahead <- deepvar_model$model_data$n_ahead
+    N <- deepvar_model$model_data$N
+    res <- deepvar_model$model_data$data[(lags + n_ahead):N,] - y_hat
   } else {
     res <- deepvar_model$res
   }
-
   return(res)
 
 }
 
-#' @export
-prepare_predictors.deepvar_model <- function(deepvar_model, data) {
-
-  lags <- deepvar_model$model_data$lags
-
-  # Explanatory variables:
-  X = as.matrix(
-    data[
-      (.N-(lags-1)):.N, # take last p rows
-      sapply(
-        0:(lags-1),
-        function(lag) {
-          data.table::shift(.SD, lag)
-        }
-      )
-      ][.N,] # take last row of that
-  )
-
-  X <- keras::array_reshape(X, dim = c(1,1,ncol(X)))
-
-  return(X)
+predict.deepvar_model <- function(deepvar_model, n.ahead=6) {
 
 }
 
-#' @export
-prepare_predictors <- function(deepvar_model, data) {
-  UseMethod("prepare_predictors", deepvar_model)
-}
+#' #' @export
+#' prepare_predictors.deepvar_model <- function(deepvar_model, data) {
+#'
+#'   lags <- deepvar_model$model_data$lags
+#'
+#'   # Explanatory variables:
+#'   X = as.matrix(
+#'     data[
+#'       (.N-(lags-1)):.N, # take last p rows
+#'       sapply(
+#'         0:(lags-1),
+#'         function(lag) {
+#'           data.table::shift(.SD, lag)
+#'         }
+#'       )
+#'       ][.N,] # take last row of that
+#'   )
+#'
+#'   X <- keras::array_reshape(X, dim = c(1,1,ncol(X)))
+#'
+#'   return(X)
+#'
+#' }
+#'
+#' #' @export
+#' prepare_predictors <- function(deepvar_model, data) {
+#'   UseMethod("prepare_predictors", deepvar_model)
+#' }
 
