@@ -25,10 +25,6 @@ deepvareg <- function(
   deepvar_model <- prepare_deepvar_model(deepvar_data, size_ensemble)
   # Train the model:
   deepvar_model <- train(deepvar_model, num_epochs)
-  # Predictive uncertainty:
-  deepvar_model$uncertainty <- deepvar_model$posterior_predictive$sd
-  # Residuals:
-  deepvar_model$res <- residuals(deepvar_model)
 
   class(deepvar_model) <- c("deepvar_model", "dvars_model") # assign broader model class
 

@@ -13,38 +13,20 @@ print.var_model <- function(var_model) {
 #' @export
 #'
 #' @author Patrick Altmeyer
-fitted.var_model <- function(var_model, X=NULL) {
-  if (is.null(X)) {
-    y_hat <- var_model$y_hat
-  } else {
-    y_hat <- tryCatch(
-      X %*% var_model$A,
-      error = function(e) {
-        return(cbind(1,X) %*% var_model$A)
-      }
-    )
-  }
-  return(y_hat)
+fitted.var_model <- function(var_model) {
+  return(var_model$y_hat)
 }
 
 #' @export
-uncertainty.var_model <- function(var_model, X=NULL) {
-  if (is.null(X)) {
-    uncertainty <- matrix(
-      rep(sqrt(diag(var_model$Sigma_res)),var_model$model_data$N),
-      ncol=var_model$model_data$K,
-      byrow = TRUE
-    )
-    colnames(uncertainty) <- var_model$model_data$var_names
-  } else {
-    # PLACEHOLDER:
-    uncertainty <- matrix(
-      rep(sqrt(diag(var_model$Sigma_res)),nrow(X)),
-      ncol=var_model$model_data$K,
-      byrow = TRUE
-    )
-    colnames(uncertainty) <- var_model$model_data$var_names
-  }
+uncertainty.var_model <- function(var_model) {
+
+  uncertainty <- matrix(
+    rep(sqrt(diag(var_model$Sigma_res)),var_model$model_data$N),
+    ncol=var_model$model_data$K,
+    byrow = TRUE
+  )
+  colnames(uncertainty) <- var_model$model_data$var_names
+
   return(uncertainty)
 }
 
@@ -53,46 +35,33 @@ uncertainty <- function(var_model, X=NULL) {
   UseMethod("uncertainty", var_model)
 }
 
-
 #' @export
-residuals.var_model <- function(var_model, X=NULL, y=NULL) {
-
-  new_data <- new_data_supplied(X=X,y=y)
-
-  if (new_data | is.null(var_model$res)) {
-    y_hat <- fitted(var_model, X)
-    res <- y - y_hat
-  } else {
-    res <- var_model$res
-  }
-
-  return(res)
-
+residuals.var_model <- function(var_model) {
+  return(var_model$res)
 }
 
+# Predictions: ----
 #' @export
-prepare_predictors.var_model <- function(var_model, data) {
+predict.var_model <- function(var_model, n.ahead = 10) {
 
   lags <- var_model$model_data$lags
+  K <- var_model$model_data$K
+  N <- var_model$model_data$N + lags
+  input_ds <- var_model$model_data$data[(N-lags+1):N] |> as.matrix()
+  preds <- matrix(rep(0,K*n.ahead),n.ahead)
 
-  # Explanatory variables:
-  X = as.matrix(
-    data[
-      (.N-(lags-1)):.N, # take last p rows
-      sapply(
-        0:(lags-1),
-        function(lag) {
-          data.table::shift(.SD, lag)
-        }
-      )
-      ][.N,] # take last row of that
+  # Forecast recursively:
+  for (t in 1:n.ahead) {
+    X <- embed(input_ds, lags)
+    preds[t,] <- fitted(var_model, X)
+    input_ds <- rbind(input_ds, preds[t,])[-1,]
+  }
+
+  # Return predictions:
+  predictions <- list(
+    predictions = preds,
+    uncertainty = NULL
   )
-
-  return(X)
-
-}
-
-#' @export
-prepare_predictors <- function(var_model, data) {
-  UseMethod("prepare_predictors", var_model)
+  class(predictions) <- "predictions"
+  return(predictions)
 }

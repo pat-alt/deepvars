@@ -79,20 +79,25 @@ train <- function(deepvar_model,num_epochs=50) {
 
 ## Predictions: ----
 #' @export
-fitted.deepvar_model <- function(deepvar_model) {
+fitted.deepvar_model <- function(deepvar_model, input_dl=NULL) {
 
-  if (is.null(deepvar_model$fitted_values)) {
+  if (is.null(input_dl)) {
+    input_dl_use <- deepvar_model$model_data$full_dl
+  } else {
+    input_dl_use <- input_dl
+  }
+
+  if (is.null(deepvar_model$fitted_values) | !is.null(input_dl)) {
     all_fitted <- lapply(
       1:length(deepvar_model$model_list),
       function(k) {
-        full_dl <- deepvar_model$model_data$full_dl[[k]]
         ensemble <- deepvar_model$model_list[[k]]$ensemble
         preds <- lapply(
           1:length(ensemble),
           function(m) {
             rnn <- ensemble[[m]]
             i <- 1
-            coro::loop(for (b in full_dl) {
+            coro::loop(for (b in input_dl_use) {
               input <- b$X
               output <- rnn(input$to(device = getOption("deepvar.device")))
               preds <- as.matrix(output)
@@ -102,12 +107,17 @@ fitted.deepvar_model <- function(deepvar_model) {
         )
         y_hat <- Reduce(`+`, preds)/length(preds) # average over ensembles
         y_hat <- y_hat * deepvar_model$model_list[[k]]$train_dl$dataset$train_sd[k] + deepvar_model$model_list[[k]]$train_dl$dataset$train_mean[k]
-        return(y_hat)
+        return(t(y_hat))
       }
     )
-    one_step_ahead_fitted <- sapply(all_fitted, function(i) i[,1])
+    names(all_fitted) <- deepvar_model$model_data$response_var_names
+    one_step_ahead_fitted <- sapply(all_fitted, function(i) i[1,])
   } else {
-    all_fitted <- deepvar_model$fitted_values
+    if (!is.null(deepvar_model$all_fitted_values)) {
+      all_fitted <- deepvar_model$all_fitted_values
+    } else {
+      all_fitted <- deepvar_model$fitted_values
+    }
     one_step_ahead_fitted <- deepvar_model$fitted_values
   }
   fitted_values <- list(
@@ -143,8 +153,44 @@ residuals.deepvar_model <- function(deepvar_model) {
 
 }
 
-predict.deepvar_model <- function(deepvar_model, n.ahead=6) {
+#' @export
+predict.deepvar_model <- function(deepvar_model, n.ahead=NULL) {
 
+  if (is.null(n.ahead)) {
+    n.ahead <- deepvar_model$model_data$n_ahead
+    message(sprintf("Producing %i-step ahead predictions from end of sample in line with Deep VAR training.", n.ahead))
+  }
+
+  lags <- deepvar_model$model_data$lags
+  N <- deepvar_model$model_data$N
+  input_ds <- deepvar_model$model_data$data[(N - lags + 1):N,] |> as.matrix()
+  input_dl <- input_ds |>
+    dvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
+    torch::dataloader(batch_size = lags)
+  preds <- fitted(deepvar_model, input_dl = input_dl)$all
+
+  if (deepvar_model$model_data$n_ahead < n.ahead) {
+    warning(
+      sprintf(
+        "Deep VAR was trained to predict only %i periods, not %i. Predictions beyond %i are computed recursively.",
+        deepvar_model$model_data$n_ahead,
+        n.ahead,
+        deepvar_model$model_data$n_ahead
+      )
+    )
+    for (t in 1:(n.ahead-unique(sapply(preds, length)))) {
+      first_out_of_sample <- matrix(sapply(preds, function(pred) pred[t,]),1)
+      input_ds <- rbind(input_ds, first_out_of_sample)
+      input_ds <- input_ds[(nrow(input_ds) - lags + 1):nrow(input_ds),] # get past data
+      input_dl <- input_ds |>
+        dvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
+        torch::dataloader(batch_size = lags)
+      recursive_preds <- fitted(deepvar_model, input_dl = input_dl)$all
+      preds <- lapply(1:length(preds), function(k) rbind(preds[[k]], recursive_preds[[k]][lags,]))
+    }
+  }
+
+  return(preds)
 }
 
 #' #' @export

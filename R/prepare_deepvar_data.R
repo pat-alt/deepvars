@@ -39,14 +39,9 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
     }
   )
 
-  # Whole data sets:
-  full_dl <- lapply(
-    response,
-    function(response_var) {
-      dvar_dataset(as.matrix(data), response_var, lags, n_ahead, sample_frac = 1.0, train_mean, train_sd) |>
-        torch::dataloader(batch_size = N)
-    }
-  )
+  # Full data set as input (for fitted values etc.):
+  full_dl <- dvar_input_data(as.matrix(data), lags = lags, train_mean = train_mean, train_sd = train_sd, use_last=FALSE) |>
+    torch::dataloader(batch_size = N)
 
   # Output:
   dvar_data <- list(
@@ -62,7 +57,9 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
     data=data,
     data_opts=getOption("deepvar.data"),
     train_mean=train_mean,
-    train_sd=train_sd
+    train_sd=train_sd,
+    var_names=var_names,
+    response_var_names=var_names[response]
   )
   class(dvar_data) <- "dvar_data"
 

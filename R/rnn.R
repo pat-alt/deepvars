@@ -38,6 +38,39 @@ dvar_dataset <- torch::dataset(
   }
 )
 
+dvar_input_data <- torch::dataset(
+  name = "dvar_input_data",
+
+  initialize = function(X, lags, train_mean, train_sd, use_last=TRUE) {
+
+    self$lags <- lags
+    self$train_mean <- train_mean
+    self$train_sd <- train_sd
+    self$X <- torch::torch_tensor(t((t(X) - self$train_mean)/self$train_sd)) # of dimension (D x T)
+
+    n <- dim(self$X)[1] - self$lags + use_last
+
+    self$starts <- 1:n
+
+  },
+
+  .getitem = function(i) {
+
+    start <- self$starts[i]
+    end <- start + self$lags - 1
+
+    list(
+      X = self$X[start:end,]
+    )
+
+  },
+
+  .length = function() {
+    length(self$starts)
+  }
+)
+
+
 # Prepare the RNN: ----
 RNN <- torch::nn_module(
 

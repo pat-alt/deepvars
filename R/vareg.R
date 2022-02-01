@@ -11,7 +11,7 @@
 #' @author Patrick Altmeyer
 vareg <- function(data, lags=1, method="ols", constant=TRUE, ci=.95, standardize=FALSE) {
 
-  var_data <- prepare_var_data(data, lags=lags, constant=constant, standardize = standardize)
+  var_data <- prepare_var_data(data, lags=lags, constant=constant)
   list2env(var_data, envir = environment()) # unpack VAR data
   df <- (N-K*lags-constant) # degrees of freedom
 
