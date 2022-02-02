@@ -44,7 +44,15 @@ plot.prediction <- function(
 
   # Predictions
   K <- prediction$model_data$K
-  sample <- data.table::data.table(prediction$model_data$data)
+
+  if (is.null(prediction$input_ds)) {
+    # In case predictions are from end of training sample (no input_ds supplied)
+    sample <- data.table::data.table(prediction$model_data$data)
+  } else {
+    # In case input_ds supplied to prediction()
+    sample <- data.table::data.table(prediction$input_ds)
+  }
+
   prediction <- rbind(sample[.N,],data.table::data.table(prediction$prediction))[,type:="Prediction"]
   uncty <- rbind(sample[.N,],data.table::data.table(prediction$uncty))[,type:="Prediction"]
   sample[,type:="Actual"]

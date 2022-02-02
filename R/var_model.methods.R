@@ -4,19 +4,19 @@ print.var_model <- function(var_model) {
 }
 
 #' @export
-fitted.var_model <- function(var_model, input_ds=NULL) {
+fitted.var_model <- function(var_model, input_dl=NULL) {
 
-  if (is.null(input_ds)) {
-    input_ds_use <- deepvar_model$model_data$full_dl
+  if (is.null(input_dl)) {
+    input_dl_use <- deepvar_model$model_data$X
   } else {
-    input_ds_use <- input_ds
+    input_dl_use <- input_dl
   }
 
-  if (is.null(deepvar_model$fitted_values) | !is.null(input_ds)) {
+  if (is.null(deepvar_model$fitted_values) | !is.null(input_dl)) {
     y_hat <- tryCatch(
-      input_ds %*% var_model$A,
+      input_dl_use %*% var_model$A,
       error = function(e) {
-        return(cbind(1,input_ds) %*% var_model$A)
+        return(cbind(1,input_dl) %*% var_model$A)
       }
     )
   } else {
@@ -44,8 +44,18 @@ uncertainty <- function(var_model) {
 }
 
 #' @export
-residuals.var_model <- function(var_model) {
-  return(var_model$res)
+residuals.var_model <- function(var_model, input_ds=NULL) {
+  if (is.null(input_ds)) {
+    res <- var_model$res
+  } else {
+    lags <- deepvar_model$model_data$lags
+    input_dl <- embed(input_ds, lags)
+    y_hat <- fitted(var_model, input_dl = input_dl)
+    N <- nrow(input_ds)
+    y <- input_ds[lags:N,]
+    res <- y - y_hat
+  }
+  return(res)
 }
 
 # Predictions: ----
@@ -70,8 +80,8 @@ predict.var_model <- function(var_model, n.ahead = 10, input_ds=NULL) {
 
   # Forecast recursively:
   for (t in 1:n.ahead) {
-    X <- embed(input_ds, lags)
-    preds[t,] <- fitted(var_model, input_ds = X)
+    input_dl <- embed(input_ds, lags)
+    preds[t,] <- fitted(var_model, input_dl = input_dl)
     input_ds <- rbind(input_ds, preds[t,])[-1,]
   }
 
@@ -81,7 +91,8 @@ predict.var_model <- function(var_model, n.ahead = 10, input_ds=NULL) {
   prediction <- list(
     prediction = preds,
     uncertainty = uncertainty(var_model),
-    model_data = var_model$model_data
+    model_data = var_model$model_data,
+    input_ds = input_ds
   )
   class(prediction) <- "prediction"
   return(prediction)

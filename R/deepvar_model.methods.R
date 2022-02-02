@@ -146,17 +146,29 @@ uncertainty <- function(deepvar_model) {
 }
 
 #' @export
-residuals.deepvar_model <- function(deepvar_model) {
+residuals.deepvar_model <- function(deepvar_model, input_ds=NULL) {
 
-  if (is.null(deepvar_model$res)) {
-    y_hat <- deepvar_model$fitted_values
-    lags <- deepvar_model$model_data$lags
-    n_ahead <- deepvar_model$model_data$n_ahead
-    N <- deepvar_model$model_data$N
-    res <- deepvar_model$model_data$data[(lags + 1):N,] - y_hat
+  if (is.null(input_ds)) {
+    if (is.null(deepvar_model$res)) {
+      y_hat <- deepvar_model$fitted_values
+      lags <- deepvar_model$model_data$lags
+      n_ahead <- deepvar_model$model_data$n_ahead
+      N <- deepvar_model$model_data$N
+      res <- deepvar_model$model_data$data[(lags + 1):N,] - y_hat
+    } else {
+      res <- deepvar_model$res
+    }
   } else {
-    res <- deepvar_model$res
+    input_dl <- input_ds |>
+      deepvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
+      torch::dataloader(batch_size = nrow(input_ds))
+    y_hat <- fitted(deepvar_model, input_dl = input_dl)$one_step_ahead
+    lags <- deepvar_model$model_data$lags
+    N <- nrow(input_ds)
+    y <- input_ds[(lags):N,]
+    res <- y - y_hat
   }
+
   return(res)
 
 }
@@ -216,7 +228,8 @@ predict.deepvar_model <- function(deepvar_model, n.ahead=NULL, input_ds=NULL) {
   prediction <- list(
     prediction = preds,
     uncertainty = uncertainty(deepvar_model),
-    model_data = deepvar_model$model_data
+    model_data = deepvar_model$model_data,
+    input_ds = input_ds
   )
   class(prediction) <- "prediction"
 
