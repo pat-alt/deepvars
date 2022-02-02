@@ -2,16 +2,18 @@
 #'
 #' @param data
 #' @param lags
-#' @param n_units
+#' @param response
+#' @param size_ensemble
+#' @param num_epochs
 #' @param n_ahead
-#' @param type
 #'
 #' @return
 #' @export
 #'
 #' @author Patrick Altmeyer
 deepvareg <- function(
-  data,
+  train_ds,
+  valid_ds,
   lags,
   response=NULL,
   n_ahead=1,
@@ -20,7 +22,7 @@ deepvareg <- function(
 ) {
 
   # Prepare data:
-  deepvar_data <- prepare_deepvar_data(data=data, lags=lags, n_ahead=n_ahead, response=response)
+  deepvar_data <- prepare_deepvar_data(train_ds=train_ds, valid_ds=valid_ds, lags=lags, n_ahead=n_ahead, response=response)
   # Prepare model:
   deepvar_model <- prepare_deepvar_model(deepvar_data, size_ensemble)
   # Train the model:

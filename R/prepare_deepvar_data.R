@@ -1,11 +1,11 @@
 
-prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
+prepare_deepvar_data <- function(train_ds, valid_ds, lags, n_ahead=1, response=NULL) {
 
   # Setup:
   list2env(getOption("deepvar.data"), envir = environment()) # load data options
-  var_names <- colnames(data)
-  K <- ncol(data)
-  N <- nrow(data)
+  var_names <- colnames(train_ds)
+  K <- ncol(train_ds)
+  N <- nrow(train_ds)
   # Response variables:
   if (is.null(response)) {
     response <- 1:K
@@ -14,8 +14,6 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
   if (batch_size < 1) {
     batch_size <- round(batch_size * N)
   }
-  # Train/validation split:
-  list2env(train_val_split(data, train_size = train_size), envir = environment())
 
   # Normalizing features:
   train_mean <- colMeans(train_ds)
@@ -39,8 +37,8 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
     }
   )
 
-  # Full data set as input (for fitted values etc.):
-  full_dl <- deepvar_input_data(as.matrix(data), lags = lags, train_mean = train_mean, train_sd = train_sd, use_last=FALSE) |>
+  # Full training data set as input (for fitted values etc.):
+  full_dl <- deepvar_input_data(as.matrix(train_ds), lags = lags, train_mean = train_mean, train_sd = train_sd, use_last=FALSE) |>
     torch::dataloader(batch_size = N)
 
   # Output:
@@ -54,7 +52,7 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
     K=K,
     N=N,
     var_names=var_names,
-    data=data,
+    data=train_ds,
     data_opts=getOption("deepvar.data"),
     train_mean=train_mean,
     train_sd=train_sd,
@@ -66,11 +64,11 @@ prepare_deepvar_data <- function(data, lags, n_ahead=1, response=NULL) {
   return(deepvar_data)
 }
 
-train_val_split <- function(data, train_size) {
-  N <- nrow(data)
-  end_train <- round(train_size * N)
-  data_train <- data[1:end_train,] |> as.matrix()
-  data_val <- data[(end_train+1):N,] |> as.matrix()
-  return(list(train_ds=data_train, valid_ds=data_val))
-}
+# train_val_split <- function(data, train_size) {
+#   N <- nrow(data)
+#   end_train <- round(train_size * N)
+#   data_train <- data[1:end_train,] |> as.matrix()
+#   data_val <- data[(end_train+1):N,] |> as.matrix()
+#   return(list(train_ds=data_train, valid_ds=data_val))
+# }
 

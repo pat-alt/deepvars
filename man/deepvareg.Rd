@@ -5,7 +5,8 @@
 \title{Deep VAR}
 \usage{
 deepvareg(
-  data,
+  train_ds,
+  valid_ds,
   lags,
   response = NULL,
   n_ahead = 1,
@@ -14,7 +15,7 @@ deepvareg(
 )
 }
 \arguments{
-\item{type}{}
+\item{n_ahead}{}
 }
 \value{
 

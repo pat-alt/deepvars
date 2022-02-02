@@ -1,4 +1,12 @@
-
+#' Title
+#'
+#' @param deepvar_data
+#' @param size_ensemble
+#'
+#' @return
+#' @export
+#'
+#' @examples
 prepare_deepvar_model <- function(deepvar_data, size_ensemble) {
 
   # Setup:
@@ -6,7 +14,7 @@ prepare_deepvar_model <- function(deepvar_data, size_ensemble) {
   input_size <- deepvar_data$K
   output_size <- deepvar_data$n_ahead
   response <- deepvar_data$response
-  device <- getOption("deepvar.device")
+  device <- torch::torch_device(getOption("deepvar.device"))
 
   model_list <- lapply(
     1:length(response),

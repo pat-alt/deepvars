@@ -23,11 +23,9 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
     doParallel::registerDoParallel(cl)
     # Train ensembles in parallel:
     foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
-      foreach::foreach(m = 1:size_ensemble) %dopar% {
-        if (verbose) {
-          message(sprintf("Training model %i for response %i",m,k))
-        }
-        forward_rnn(
+      foreach::foreach(m = 1:deepvar_model$size_ensemble) %dopar% {
+        message(sprintf("Training model %i for response %i",m,k))
+        deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
           rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
           train_dl = deepvar_model$model_list[[k]]$train_dl,
           valid_dl = deepvar_model$model_list[[k]]$valid_dl,
@@ -36,17 +34,17 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
           optim_args = optim_args,
           num_epochs = num_epochs,
           verbose = verbose,
-          tau = tau
+          tau = tau,
+          patience = patience,
+          show_progress = show_progress
         )
       }
   } else {
     # Train ensembles:
     foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
-      foreach::foreach(m = 1:size_ensemble) %do% {
-        if (verbose) {
-          message(sprintf("Training model %i for response %i",m,k))
-        }
-        forward_rnn(
+      foreach::foreach(m = 1:deepvar_model$size_ensemble) %do% {
+        message(sprintf("Training model %i for response %i",m,k))
+        deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
           rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
           train_dl = deepvar_model$model_list[[k]]$train_dl,
           valid_dl = deepvar_model$model_list[[k]]$valid_dl,
@@ -55,7 +53,9 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
           optim_args = optim_args,
           num_epochs = num_epochs,
           verbose = verbose,
-          tau = tau
+          tau = tau,
+          patience = patience,
+          show_progress = show_progress
         )
       }
   }
@@ -81,6 +81,8 @@ train <- function(deepvar_model,num_epochs=50) {
 #' @export
 fitted.deepvar_model <- function(deepvar_model, input_dl=NULL) {
 
+  device <- torch::torch_device(getOption("deepvar.device"))
+
   if (is.null(input_dl)) {
     input_dl_use <- deepvar_model$model_data$full_dl
   } else {
@@ -99,7 +101,7 @@ fitted.deepvar_model <- function(deepvar_model, input_dl=NULL) {
             i <- 1
             coro::loop(for (b in input_dl_use) {
               input <- b$X
-              output <- rnn(input$to(device = getOption("deepvar.device")))
+              output <- rnn(input$to(device = device))
               preds <- as.matrix(output)
             })
             return(preds)
@@ -130,7 +132,7 @@ fitted.deepvar_model <- function(deepvar_model, input_dl=NULL) {
 #' @export
 uncertainty.deepvar_model <- function(deepvar_model) {
   uncertainty <- matrix(
-    rep(NA,deepvar_model$model_data$N),
+    rep(NA,deepvar_model$model_data$K*deepvar_model$model_data$N),
     ncol = deepvar_model$model_data$K,
     byrow = TRUE
   )
@@ -151,7 +153,7 @@ residuals.deepvar_model <- function(deepvar_model) {
     lags <- deepvar_model$model_data$lags
     n_ahead <- deepvar_model$model_data$n_ahead
     N <- deepvar_model$model_data$N
-    res <- deepvar_model$model_data$data[(lags + n_ahead):N,] - y_hat
+    res <- deepvar_model$model_data$data[(lags + 1):N,] - y_hat
   } else {
     res <- deepvar_model$res
   }
@@ -160,7 +162,7 @@ residuals.deepvar_model <- function(deepvar_model) {
 }
 
 #' @export
-predict.deepvar_model <- function(deepvar_model, n.ahead=NULL) {
+predict.deepvar_model <- function(deepvar_model, n.ahead=NULL, input_ds=NULL) {
 
   if (is.null(n.ahead)) {
     n.ahead <- deepvar_model$model_data$n_ahead
@@ -169,7 +171,17 @@ predict.deepvar_model <- function(deepvar_model, n.ahead=NULL) {
 
   lags <- deepvar_model$model_data$lags
   N <- deepvar_model$model_data$N
-  input_ds <- deepvar_model$model_data$data[(N - lags + 1):N,] |> as.matrix()
+  if (is.null(input_ds)) {
+    input_ds <- deepvar_model$model_data$data[(N - lags + 1):N,] |> as.matrix()
+  } else {
+    if (nrow(input_ds) < deepvar_model$model_data$lags) stop(
+      sprintf(
+        "Input data has less observations (%i) than chosen lags (%i). Aborting.",
+        nrow(input_ds),
+        deepvar_model$model_data$lags
+      )
+    )
+  }
   input_dl <- input_ds |>
     deepvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
     torch::dataloader(batch_size = lags)
@@ -193,11 +205,12 @@ predict.deepvar_model <- function(deepvar_model, n.ahead=NULL) {
         torch::dataloader(batch_size = lags)
       recursive_preds <- fitted(deepvar_model, input_dl = input_dl)$all
       preds <- lapply(1:length(preds), function(k) rbind(preds[[k]], recursive_preds[[k]][lags,]))
+      names(preds) <- deepvar_model$model_data$response_var_names
     }
   }
 
   # Turn into matrix:
-  preds <- sapply(preds, function(pred) pred)
+  preds <- list2DF(preds) |> as.matrix()
 
   # Return predictions:
   prediction <- list(

@@ -44,14 +44,14 @@ plot.prediction <- function(
 
   # Predictions
   K <- prediction$model_data$K
-  sample <- data.table::copy(prediction$model_data$data)
-  prediction <- rbind(sample[.N,],data.table(prediction$prediction))[,type:="Prediction"]
-  uncty <- rbind(sample[.N,],data.table(prediction$uncty))[,type:="Prediction"]
+  sample <- data.table::data.table(prediction$model_data$data)
+  prediction <- rbind(sample[.N,],data.table::data.table(prediction$prediction))[,type:="Prediction"]
+  uncty <- rbind(sample[.N,],data.table::data.table(prediction$uncty))[,type:="Prediction"]
   sample[,type:="Actual"]
-  if (!is.null(dates)) {
+  if (is.null(dates)) {
     sample[,date:=1:.N]
-    prediction[,date:=(nrow(sample)):(nrow(sample)+.N)]
-    uncty[,date:=(nrow(sample)):(nrow(sample)+.N)]
+    prediction[,date:=(nrow(sample)):(nrow(sample)+.N-1)]
+    uncty[,date:=(nrow(sample)):(nrow(sample)+.N-1)]
   }
 
   dt_plot <- rbind(sample,prediction)
@@ -59,7 +59,7 @@ plot.prediction <- function(
 
   # True outcomes:
   if (!is.null(y)) {
-    y <- data.table::data.table(y)
+    y <- data.table::data.table(y)[1:(nrow(prediction)-1)]
     y[,date:=prediction$date[-1]]
     y[,type:="Actual"]
     y <- data.table::melt(y, id.vars = c("date","type"))

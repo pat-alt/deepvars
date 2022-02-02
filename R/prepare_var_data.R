@@ -7,7 +7,7 @@ prepare_var_data <- function(data, lags=1, constant=TRUE) {
   K <- ncol(data)
 
   # Reshape:
-  y <- as.matrix(data[(lags+1):.N,1:K])
+  y <- as.matrix(data[(lags+1):(N+lags),1:K])
   X <- embed(as.matrix(data), lags+1)[,-c(1:K)]
   colnames(X) <- c(sapply(1:lags, function(p) sprintf("%s_l%i", var_names, p)))
   if (constant) {
@@ -23,7 +23,8 @@ prepare_var_data <- function(data, lags=1, constant=TRUE) {
     N=N,
     data=data_out,
     constant=constant,
-    var_names=var_names
+    var_names=var_names,
+    response_var_names=var_names
   )
   class(var_data) <- "var_data"
 

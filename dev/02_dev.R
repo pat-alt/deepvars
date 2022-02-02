@@ -15,6 +15,7 @@
 
 ## Dependencies ----
 ## Add one line by package you want to add as dependency
+usethis::use_package("progress", min_version = TRUE)
 usethis::use_package("coro", min_version = TRUE)
 usethis::use_package("parallel", min_version = TRUE)
 usethis::use_package("doParallel", min_version = TRUE)
@@ -57,7 +58,7 @@ usethis::use_test( "VAR_stable" )
 usethis::use_test( "VARMA" )
 
 ## Data ----
-usethis::use_data(canada, internal = FALSE, overwrite = TRUE)
+usethis::use_data(fredmd, internal = FALSE, overwrite = TRUE)
 
 # Documentation
 

@@ -13,6 +13,12 @@ deepvar_dataset <- torch::dataset(
 
     n <- dim(self$X)[1] - self$lags - self$n_ahead + 1
 
+    if (n < 1) stop(sprintf(
+      "Your validation set contains less observations (%i) than the sum of `lags` and `n_ahead` (%i). Adjust the train sample ratio.",
+      dim(self$X)[1],
+      self$lags + self$n_ahead
+    ))
+
     self$starts <- sort(sample.int(
       n = n,
       size = round(n * sample_frac)
@@ -134,7 +140,7 @@ RNN <- torch::nn_module(
 # Training: ----
 train_batch <- function(rnn, b, loss, optim) {
 
-  device <- getOption("deepvar.device")
+  device <- torch::torch_device(getOption("deepvar.device"))
 
   optim$zero_grad() # in
   output <- rnn(b$X$to(device = device))
@@ -149,7 +155,7 @@ train_batch <- function(rnn, b, loss, optim) {
 
 valid_batch <- function(rnn, b, loss) {
 
-  device <- getOption("deepvar.device")
+  device <- torch::torch_device(getOption("deepvar.device"))
 
   output <- rnn(b$X$to(device = device))
   target <- b$y$to(device = device)
@@ -159,9 +165,9 @@ valid_batch <- function(rnn, b, loss) {
 
 }
 
-forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, num_epochs, verbose=FALSE, tau = 0.1) {
+forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, num_epochs, verbose=FALSE, tau = 0.1, patience=10, show_progress=TRUE, checkpoint_path="checkpoint.pt") {
 
-  device <- getOption("deepvar.device")
+  device <- torch::torch_device(getOption("deepvar.device"))
   optim <- do.call(optim_fun, c(params = list(rnn$parameters), optim_args))
 
   # Helper function to train on mini-batches:
@@ -186,11 +192,31 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
     return(mean(valid_loss))
   }
 
-  valid_loss_previous <- compute_valid_loss()
-  valid_loss_change_trailing <- Inf
+  compute_train_loss <- function() {
+    rnn$eval()
+    train_loss <- c()
+    coro::loop(for (b in train_dl) {
+      l <- valid_batch(rnn, b, loss)
+      train_loss <- c(train_loss, l)
+    })
+    return(mean(train_loss))
+  }
+
+  valid_loss_all <- compute_valid_loss()
+  train_loss_all <- compute_train_loss()
+  stop_early <- FALSE
   epoch <- 1
 
-  while (epoch <= num_epochs) {
+  if (show_progress) {
+    pb <- progress::progress_bar$new(
+      format = "  Training [:bar] :percent in :elapsed",
+      total = num_epochs, clear = FALSE, width = 60
+    )
+  }
+
+  while (epoch <= num_epochs & !stop_early) {
+
+    if (show_progress) pb$tick()
 
     train_loss <- train_batches()
     if (verbose) {
@@ -202,19 +228,48 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
       cat(sprintf("\nEpoch %d, validation: loss: %3.5f \n", epoch, valid_loss))
     }
 
-    valid_loss_change <- valid_loss_previous - valid_loss
-    if (epoch == 1) {
-      valid_loss_change_trailing <- valid_loss_change
-    } else {
-      valid_loss_change_trailing <- weighted.mean(
-        c(valid_loss_change_trailing, valid_loss_change),
-        c(1/epoch, 1 - (1/epoch))
+    valid_loss_all <- c(valid_loss_all, valid_loss)
+    train_loss_all <- c(train_loss_all, train_loss)
+    avg_loss_all <- rowMeans(cbind(valid_loss_all,train_loss_all))
+    if (tail(avg_loss_all,1) == min(avg_loss_all)) {
+      # Temporarily save best model to disk:
+      best_valid <- valid_loss
+      best_train <- train_loss
+      best_epoch <- epoch
+      torch::torch_save(rnn, checkpoint_path)
+    }
+    if (epoch > patience[2]) {
+      stop_early <- sum(diff(valid_loss_all)[(epoch - patience[2] + 1):epoch] > tau) > patience[1] & best_epoch != epoch
+    }
+
+    if (stop_early) {
+      message(
+        sprintf(
+          "\nStopping early in epoch %i as change in validation loss has been higher than %0.5f for %i out the past %i epochs.\nUsing model with lowest combination of training and validation loss.",
+          epoch,
+          tau,
+          patience[1],
+          patience[2]
+        )
       )
     }
-    valid_loss_previous <- mean(valid_loss)
+
     epoch <- epoch + 1
 
   }
+
+  message(
+    sprintf(
+      "Best combination of training loss of %0.5f and validation loss of %0.5f achieved in epoch %i. Using corresponding model.",
+      best_train,
+      best_valid,
+      best_epoch
+    )
+  )
+  rnn <- torch::torch_load(checkpoint_path, device=device) # load best specification (in terms of validation loss)
+  unlink(checkpoint_path) # delete temporarily stored file
+
+  return(rnn)
 
 }
 
