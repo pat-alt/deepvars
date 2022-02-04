@@ -178,7 +178,7 @@ ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
 ### h-step ahead forecasts
 
 ```{r}
-n_ahead <- 12
+n_ahead <- 6
 ```
 
 

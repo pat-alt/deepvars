@@ -17,32 +17,32 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
 
   if (parallelize) {
     stop("Sorry, running deep ensemble in parallel is not yet supported.")
-    # Set up cluster
-    no_cores <- parallel::detectCores() - 1
-    cl <- parallel::makeCluster(no_cores, type = "FORK")
-    doParallel::registerDoParallel(cl)
-    # Train ensembles in parallel:
-    foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
-      foreach::foreach(m = 1:deepvar_model$size_ensemble) %dopar% {
-        message(sprintf("Training model %i for response %i",m,k))
-        deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
-          rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
-          train_dl = deepvar_model$model_list[[k]]$train_dl,
-          valid_dl = deepvar_model$model_list[[k]]$valid_dl,
-          loss = loss,
-          optim_fun = optim_fun,
-          optim_args = optim_args,
-          num_epochs = num_epochs,
-          verbose = verbose,
-          tau = tau,
-          patience = patience,
-          show_progress = show_progress
-        )
-      }
+    # # Set up cluster
+    # no_cores <- parallel::detectCores() - 1
+    # cl <- parallel::makeCluster(no_cores, type = "FORK")
+    # doParallel::registerDoParallel(cl)
+    # # Train ensembles in parallel:
+    # foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
+    #   foreach::foreach(m = 1:deepvar_model$size_ensemble) %dopar% {
+    #     message(sprintf("Training model %i for response %i",m,k))
+    #     deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
+    #       rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
+    #       train_dl = deepvar_model$model_list[[k]]$train_dl,
+    #       valid_dl = deepvar_model$model_list[[k]]$valid_dl,
+    #       loss = loss,
+    #       optim_fun = optim_fun,
+    #       optim_args = optim_args,
+    #       num_epochs = num_epochs,
+    #       verbose = verbose,
+    #       tau = tau,
+    #       patience = patience,
+    #       show_progress = show_progress
+    #     )
+    #   }
   } else {
     # Train ensembles:
-    foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
-      foreach::foreach(m = 1:deepvar_model$size_ensemble) %do% {
+    for (k in 1:length(deepvar_model$model_list)) {
+      for (m in 1:deepvar_model$size_ensemble) {
         message(sprintf("Training model %i for response %i",m,k))
         deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
           rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
@@ -58,6 +58,24 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
           show_progress = show_progress
         )
       }
+    }
+    # foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
+    #   foreach::foreach(m = 1:deepvar_model$size_ensemble) %do% {
+    #     message(sprintf("Training model %i for response %i",m,k))
+    #     deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
+    #       rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
+    #       train_dl = deepvar_model$model_list[[k]]$train_dl,
+    #       valid_dl = deepvar_model$model_list[[k]]$valid_dl,
+    #       loss = loss,
+    #       optim_fun = optim_fun,
+    #       optim_args = optim_args,
+    #       num_epochs = num_epochs,
+    #       verbose = verbose,
+    #       tau = tau,
+    #       patience = patience,
+    #       show_progress = show_progress
+    #     )
+    #   }
   }
 
   # Output:

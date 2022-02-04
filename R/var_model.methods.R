@@ -7,12 +7,12 @@ print.var_model <- function(var_model) {
 fitted.var_model <- function(var_model, input_dl=NULL) {
 
   if (is.null(input_dl)) {
-    input_dl_use <- deepvar_model$model_data$X
+    input_dl_use <- var_model$model_data$X
   } else {
     input_dl_use <- input_dl
   }
 
-  if (is.null(deepvar_model$fitted_values) | !is.null(input_dl)) {
+  if (is.null(var_model$fitted_values) | !is.null(input_dl)) {
     y_hat <- tryCatch(
       input_dl_use %*% var_model$A,
       error = function(e) {

@@ -18,7 +18,7 @@ deepvareg <- function(
   response=NULL,
   n_ahead=1,
   size_ensemble=1,
-  num_epochs=100
+  num_epochs=500
 ) {
 
   # Prepare data:

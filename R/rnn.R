@@ -169,6 +169,7 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
 
   device <- torch::torch_device(getOption("deepvar.device"))
   optim <- do.call(optim_fun, c(params = list(rnn$parameters), optim_args))
+  checkpoint_path <- file.path(tempdir(),checkpoint_path) # create a temporary directory for checkpoints
 
   # Helper function to train on mini-batches:
   train_batches <- function() {
@@ -214,6 +215,10 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
     )
   }
 
+  best_valid <- valid_loss_all[1]
+  best_train <- train_loss_all[1]
+  best_epoch <- epoch
+
   while (epoch <= num_epochs & !stop_early) {
 
     if (show_progress) pb$tick()
@@ -230,13 +235,14 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
 
     valid_loss_all <- c(valid_loss_all, valid_loss)
     train_loss_all <- c(train_loss_all, train_loss)
-    avg_loss_all <- rowMeans(cbind(valid_loss_all,train_loss_all))
+    avg_loss_all <- rowMeans(cbind(valid_loss_all,train_loss_all))*abs(valid_loss_all-train_loss_all)
     if (tail(avg_loss_all,1) == min(avg_loss_all)) {
       # Temporarily save best model to disk:
       best_valid <- valid_loss
       best_train <- train_loss
       best_epoch <- epoch
-      torch::torch_save(rnn, checkpoint_path)
+      best_rnn <- rnn
+      try({torch::torch_save(rnn, checkpoint_path)})
     }
     if (epoch > patience[2]) {
       stop_early <- sum(diff(valid_loss_all)[(epoch - patience[2] + 1):epoch] > tau) > patience[1] & best_epoch != epoch
@@ -266,10 +272,13 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
       best_epoch
     )
   )
-  rnn <- torch::torch_load(checkpoint_path, device=device) # load best specification (in terms of validation loss)
-  unlink(checkpoint_path) # delete temporarily stored file
 
-  return(rnn)
+  try({
+    rnn <- torch::torch_load(checkpoint_path, device=device) # load best specification (in terms of validation loss)
+  })
+
+
+  return(best_rnn)
 
 }
 
