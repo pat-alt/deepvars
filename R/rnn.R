@@ -241,7 +241,6 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
       best_valid <- valid_loss
       best_train <- train_loss
       best_epoch <- epoch
-      best_rnn <- rnn
       try({torch::torch_save(rnn, checkpoint_path)})
     }
     if (epoch > patience[2]) {
@@ -278,7 +277,7 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
   })
 
 
-  return(best_rnn)
+  return(rnn)
 
 }
 
