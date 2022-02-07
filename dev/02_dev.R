@@ -17,9 +17,6 @@
 ## Add one line by package you want to add as dependency
 usethis::use_package("progress", min_version = TRUE)
 usethis::use_package("coro", min_version = TRUE)
-usethis::use_package("parallel", min_version = TRUE)
-usethis::use_package("doParallel", min_version = TRUE)
-usethis::use_package("foreach", min_version = TRUE)
 usethis::use_package("torch", min_version = TRUE)
 usethis::use_package("data.table", min_version = TRUE)
 usethis::use_package("readr", min_version = TRUE)
