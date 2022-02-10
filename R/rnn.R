@@ -165,11 +165,13 @@ valid_batch <- function(rnn, b, loss) {
 
 }
 
-forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, num_epochs, verbose=FALSE, tau = 0.1, patience=10, show_progress=TRUE, checkpoint_path="checkpoint.pt") {
+forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, num_epochs, verbose=FALSE, tau = 0.1, patience=10, show_progress=TRUE, early_stopping=FALSE, checkpoint_path="checkpoint.pt") {
 
   device <- torch::torch_device(getOption("deepvar.device"))
   optim <- do.call(optim_fun, c(params = list(rnn$parameters), optim_args))
-  checkpoint_path <- file.path(tempdir(),checkpoint_path) # create a temporary directory for checkpoints
+  if (early_stopping) {
+    checkpoint_path <- file.path(tempdir(),checkpoint_path) # create a temporary directory for checkpoints
+  }
 
   # Helper function to train on mini-batches:
   train_batches <- function() {
@@ -210,7 +212,7 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
 
   if (show_progress) {
     pb <- progress::progress_bar$new(
-      format = "  Training [:bar] :percent in :elapsed",
+      format = "  Training [:bar] :current/:total :percent in :elapsed",
       total = num_epochs, clear = FALSE, width = 60
     )
   }
@@ -235,47 +237,60 @@ forward_rnn <- function(rnn, train_dl, valid_dl, loss, optim_fun, optim_args, nu
 
     valid_loss_all <- c(valid_loss_all, valid_loss)
     train_loss_all <- c(train_loss_all, train_loss)
-    avg_loss_all <- rowMeans(cbind(valid_loss_all,train_loss_all))*abs(valid_loss_all-train_loss_all)
-    if (tail(avg_loss_all,1) == min(avg_loss_all)) {
-      # Temporarily save best model to disk:
-      best_valid <- valid_loss
-      best_train <- train_loss
-      best_epoch <- epoch
-      try({torch::torch_save(rnn, checkpoint_path)})
-    }
-    if (epoch > patience[2]) {
-      stop_early <- sum(diff(valid_loss_all)[(epoch - patience[2] + 1):epoch] > tau) > patience[1] & best_epoch != epoch
-    }
 
-    if (stop_early) {
-      message(
-        sprintf(
-          "\nStopping early in epoch %i as change in validation loss has been higher than %0.5f for %i out the past %i epochs.\nUsing model with lowest combination of training and validation loss.",
-          epoch,
-          tau,
-          patience[1],
-          patience[2]
+    if (early_stopping) {
+      avg_loss_all <- rowMeans(cbind(valid_loss_all,train_loss_all))*abs(valid_loss_all-train_loss_all)
+      if (tail(avg_loss_all,1) == min(avg_loss_all)) {
+        # Temporarily save best model to disk:
+        best_valid <- valid_loss
+        best_train <- train_loss
+        best_epoch <- epoch
+        try({torch::torch_save(rnn, checkpoint_path)})
+      }
+      if (epoch > patience[2]) {
+        stop_early <- sum(diff(valid_loss_all)[(epoch - patience[2] + 1):epoch] > tau) > patience[1] & best_epoch != epoch
+      }
+
+      if (stop_early) {
+        message(
+          sprintf(
+            "\nStopping early in epoch %i as change in validation loss has been higher than %0.5f for %i out the past %i epochs.\nUsing model with lowest combination of training and validation loss.",
+            epoch,
+            tau,
+            patience[1],
+            patience[2]
+          )
         )
-      )
+      }
+
+      try({
+        rnn <- torch::torch_load(checkpoint_path, device=device) # load best specification (in terms of validation loss)
+      })
+
     }
 
     epoch <- epoch + 1
 
   }
 
-  message(
-    sprintf(
-      "Best combination of training loss of %0.5f and validation loss of %0.5f achieved in epoch %i. Using corresponding model.",
-      best_train,
-      best_valid,
-      best_epoch
+  if (early_stopping) {
+    message(
+      sprintf(
+        "Best combination of training loss of %0.5f and validation loss of %0.5f achieved in epoch %i. Using corresponding model.",
+        best_train,
+        best_valid,
+        best_epoch
+      )
     )
-  )
-
-  try({
-    rnn <- torch::torch_load(checkpoint_path, device=device) # load best specification (in terms of validation loss)
-  })
-
+  } else {
+    message(
+      sprintf(
+        "Final training loss of %0.5f and validation loss of %0.5f.",
+        tail(train_loss_all,1),
+        tail(valid_loss_all,1)
+      )
+    )
+  }
 
   return(rnn)
 

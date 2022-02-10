@@ -84,7 +84,7 @@ Fit the two models ...
 # VAR
 var_model <- vareg(train_ds, lags = lags)
 # Deep VAR
-deepvar_model <- deepvareg(train_ds, valid_ds, lags = lags, num_epochs = 200)
+deepvar_model <- deepvareg(train_ds, valid_ds, lags = lags)
 ```
 
 ### In-sample fit
@@ -198,10 +198,11 @@ plot(pred_var, y = test_ds[1:n_ahead,], history=50)
 
 ```{r, fcst-dvar, fig.dim=c(7,4), fig.cap="Forecasts from Deep VAR."}
 # Deep VAR
-deepvar_model <- deepvareg(train_ds, valid_ds = valid_ds, lags = lags, n_ahead = min(lags,n_ahead), num_epochs = 200)
+# deepvar_model <- deepvareg(train_ds, valid_ds = valid_ds, lags = lags, n_ahead = min(lags,n_ahead), num_epochs = 200)
 pred_dvar <- predict(deepvar_model, n.ahead = n_ahead)
 plot(pred_dvar, y = y, history = 50)
 ```
+
 ```{r}
 input_ds <- prepare_last_as_input(deepvar_model, valid_ds)
 pred_dvar <- predict(deepvar_model, n.ahead = n_ahead, input_ds)

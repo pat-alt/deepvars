@@ -11,7 +11,7 @@ prepare_deepvar_data <- function(train_ds, valid_ds, lags, n_ahead=1, response=N
     response <- 1:K
   }
   # Batch size:
-  if (batch_size < 1) {
+  if (batch_size <= 1) {
     batch_size <- round(batch_size * N)
   }
 

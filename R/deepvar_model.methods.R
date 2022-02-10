@@ -9,73 +9,27 @@
 #' @importFrom foreach `%dopar%` `%:%` `%do%`
 #'
 #' @examples
-train.deepvar_model <- function(deepvar_model,num_epochs=50) {
+train.deepvar_model <- function(deepvar_model,num_epochs=500) {
 
   # Setup:
   list2env(getOption("deepvar.train"), envir = environment()) # load training options
   verbose <- getOption("deepvar.verbose")
 
-  if (parallelize) {
-    stop("Sorry, running deep ensemble in parallel is not yet supported.")
-    # # Set up cluster
-    # no_cores <- parallel::detectCores() - 1
-    # cl <- parallel::makeCluster(no_cores, type = "FORK")
-    # doParallel::registerDoParallel(cl)
-    # # Train ensembles in parallel:
-    # foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
-    #   foreach::foreach(m = 1:deepvar_model$size_ensemble) %dopar% {
-    #     message(sprintf("Training model %i for response %i",m,k))
-    #     deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
-    #       rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
-    #       train_dl = deepvar_model$model_list[[k]]$train_dl,
-    #       valid_dl = deepvar_model$model_list[[k]]$valid_dl,
-    #       loss = loss,
-    #       optim_fun = optim_fun,
-    #       optim_args = optim_args,
-    #       num_epochs = num_epochs,
-    #       verbose = verbose,
-    #       tau = tau,
-    #       patience = patience,
-    #       show_progress = show_progress
-    #     )
-    #   }
-  } else {
-    # Train ensembles:
-    for (k in 1:length(deepvar_model$model_list)) {
-      for (m in 1:deepvar_model$size_ensemble) {
-        message(sprintf("Training model %i for response %i",m,k))
-        deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
-          rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
-          train_dl = deepvar_model$model_list[[k]]$train_dl,
-          valid_dl = deepvar_model$model_list[[k]]$valid_dl,
-          loss = loss,
-          optim_fun = optim_fun,
-          optim_args = optim_args,
-          num_epochs = num_epochs,
-          verbose = verbose,
-          tau = tau,
-          patience = patience,
-          show_progress = show_progress
-        )
-      }
-    }
-    # foreach::foreach(k = 1:length(deepvar_model$model_list)) %:%
-    #   foreach::foreach(m = 1:deepvar_model$size_ensemble) %do% {
-    #     message(sprintf("Training model %i for response %i",m,k))
-    #     deepvar_model$model_list[[k]]$ensemble[[m]] <- forward_rnn(
-    #       rnn = deepvar_model$model_list[[k]]$ensemble[[m]],
-    #       train_dl = deepvar_model$model_list[[k]]$train_dl,
-    #       valid_dl = deepvar_model$model_list[[k]]$valid_dl,
-    #       loss = loss,
-    #       optim_fun = optim_fun,
-    #       optim_args = optim_args,
-    #       num_epochs = num_epochs,
-    #       verbose = verbose,
-    #       tau = tau,
-    #       patience = patience,
-    #       show_progress = show_progress
-    #     )
-    #   }
+  for (k in 1:length(deepvar_model$model_list)) {
+    message(sprintf("Training model for response %i",k))
+    deepvar_model$model_list[[k]]$net <- forward_rnn(
+      rnn = deepvar_model$model_list[[k]]$net,
+      train_dl = deepvar_model$model_list[[k]]$train_dl,
+      valid_dl = deepvar_model$model_list[[k]]$valid_dl,
+      loss = loss,
+      optim_fun = optim_fun,
+      optim_args = optim_args,
+      num_epochs = num_epochs,
+      verbose = verbose,
+      tau = tau,
+      patience = patience,
+      show_progress = show_progress
+    )
   }
 
   # Output:
@@ -91,7 +45,7 @@ train.deepvar_model <- function(deepvar_model,num_epochs=50) {
 }
 
 #' @export
-train <- function(deepvar_model,num_epochs=50) {
+train <- function(deepvar_model,num_epochs=500) {
   UseMethod("train", deepvar_model)
 }
 
@@ -111,21 +65,13 @@ fitted.deepvar_model <- function(deepvar_model, input_dl=NULL) {
     all_fitted <- lapply(
       1:length(deepvar_model$model_list),
       function(k) {
-        ensemble <- deepvar_model$model_list[[k]]$ensemble
-        preds <- lapply(
-          1:length(ensemble),
-          function(m) {
-            rnn <- ensemble[[m]]
-            i <- 1
-            coro::loop(for (b in input_dl_use) {
-              input <- b$X
-              output <- rnn(input$to(device = device))
-              preds <- as.matrix(output)
-            })
-            return(preds)
-          }
-        )
-        y_hat <- Reduce(`+`, preds)/length(preds) # average over ensembles
+        net <- deepvar_model$model_list[[k]]$net
+        i <- 1
+        coro::loop(for (b in input_dl_use) {
+          input <- b$X
+          output <- net(input$to(device = device))
+          y_hat <- as.matrix(output)
+        })
         y_hat <- y_hat * deepvar_model$model_list[[k]]$train_dl$dataset$train_sd[k] + deepvar_model$model_list[[k]]$train_dl$dataset$train_mean[k]
         return(t(y_hat))
       }
@@ -234,7 +180,7 @@ predict.deepvar_model <- function(deepvar_model, n.ahead=NULL, input_ds=NULL) {
         deepvar_input_data(lags = lags, train_mean = deepvar_model$model_data$train_mean, train_sd = deepvar_model$model_data$train_sd) |>
         torch::dataloader(batch_size = lags)
       recursive_preds <- fitted(deepvar_model, input_dl = input_dl)$all
-      preds <- lapply(1:length(preds), function(k) rbind(preds[[k]], recursive_preds[[k]][lags,]))
+      preds <- lapply(1:length(preds), function(k) rbind(preds[[k]], recursive_preds[[k]][deepvar_model$model_data$n_ahead,]))
       names(preds) <- deepvar_model$model_data$response_var_names
     }
   }

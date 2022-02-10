@@ -3,7 +3,6 @@
 #' @param data
 #' @param lags
 #' @param response
-#' @param size_ensemble
 #' @param num_epochs
 #' @param n_ahead
 #'
@@ -17,14 +16,13 @@ deepvareg <- function(
   lags,
   response=NULL,
   n_ahead=1,
-  size_ensemble=1,
   num_epochs=500
 ) {
 
   # Prepare data:
   deepvar_data <- prepare_deepvar_data(train_ds=train_ds, valid_ds=valid_ds, lags=lags, n_ahead=n_ahead, response=response)
   # Prepare model:
-  deepvar_model <- prepare_deepvar_model(deepvar_data, size_ensemble)
+  deepvar_model <- prepare_deepvar_model(deepvar_data)
   # Train the model:
   deepvar_model <- train(deepvar_model, num_epochs)
 
