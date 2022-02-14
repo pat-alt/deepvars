@@ -128,12 +128,13 @@ residuals.deepvar_model <- function(deepvar_model, X=NULL, y=NULL) {
 
   if (new_data | is.null(deepvar_model$res)) {
     if (!new_data) {
+      # If no new data is supplied, training outputs are re-scaled:
       X <- deepvar_model$X_train
       y <- deepvar_model$y_train
+      y <- keras::array_reshape(y, dim=c(dim(y)[1],dim(y)[3]))
+      y <- invert_scaling(y, deepvar_model$model_data)
     }
     y_hat <- fitted(deepvar_model, X=X)
-    y <- keras::array_reshape(y, dim=c(dim(y)[1],dim(y)[3]))
-    y <- invert_scaling(y, deepvar_model$model_data)
     res <- y - y_hat
   } else {
     res <- deepvar_model$res
