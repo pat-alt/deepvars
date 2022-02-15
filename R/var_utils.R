@@ -61,3 +61,44 @@ lag_order <- function(data, max_lag=10, ic_choice="AIC", type="const") {
   )
 
 }
+
+#' companion_form
+#'
+#' @param A
+#' @param constant
+#'
+#' @return
+#' @export
+#'
+#' @examples
+companion_form <- function(A, constant=TRUE) {
+  K <- ncol(A)
+  lags <- (nrow(A)-constant)/K
+  if(constant==TRUE) {
+    top <- t(A[-1,])
+  } else {
+    top <- t(A)
+  }
+  bottom <- cbind(
+    diag(K*(lags-1)),
+    matrix(rep(0,K**2 * (lags-1)),ncol = K)
+  )
+  A_comp <- rbind(top,bottom)
+  return(A_comp)
+}
+
+#' detrend
+#'
+#' @param y
+#'
+#' @return
+#' @export
+detrend = function(y) {
+  y = as.matrix(y)
+  sapply(1:ncol(y), function(i) {
+    y_i = y[,i]
+    t = 1:length(y_i)
+    stats::lm(y_i ~ t)$res
+  })
+}
+

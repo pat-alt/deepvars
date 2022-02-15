@@ -15,7 +15,7 @@ Config/reticulate:
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Imports: 
     expm (>= 0.999.4),
     data.table (>= 1.12.6),
@@ -25,7 +25,9 @@ Imports:
     knitr,
     tensorflow (>= 2.4.0),
     ggplot2 (>= 3.2.1),
-    tfprobability (>= 0.12.0.0)
+    tfprobability (>= 0.12.0.0),
+    parallel (>= 4.1.2),
+    foreach (>= 1.5.2)
 Suggests: 
     testthat (>= 2.3.1)
 Depends: R (>= 2.10)

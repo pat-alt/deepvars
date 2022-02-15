@@ -4,14 +4,7 @@
 \alias{vareg}
 \title{vareg}
 \usage{
-vareg(
-  data,
-  lags = 1,
-  method = "ols",
-  constant = TRUE,
-  ci = 0.95,
-  standardize = FALSE
-)
+vareg(data, lags = 1, method = "ols", constant = TRUE, ci = 0.95)
 }
 \arguments{
 \item{data}{Data set}

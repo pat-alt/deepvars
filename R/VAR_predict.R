@@ -61,7 +61,7 @@ VAR_predict = function(varresult,
   fcst_tidy[idx==max(idx),(unlist(ci_cols)):=value,by=.(variable)]
 
   # Compute Phi as in Kilian, Luetkepohl
-  Phi = red_ir(lag, K, A_comp, const, n.ahead)
+  Phi = compute_Phi(lag, K, A_comp, const, n.ahead)
   B_0 = identify_chol(Sigma_res)
   Theta = compute_Theta(Phi, B_0)
   mspe = compute_mspe(Theta, n.ahead)

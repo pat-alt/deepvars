@@ -9,7 +9,9 @@ prepare_deepvar_model(
   num_units = 50,
   num_layers = 2,
   p_drop_out = 0.5,
-  optimizer = "adam"
+  epsilon = 0.001,
+  optimizer = keras::optimizer_adam(learning_rate = epsilon),
+  M = 5
 )
 }
 \arguments{

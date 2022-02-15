@@ -1,4 +1,16 @@
 #' @export
+prepare_test_data <- function(test_data, lags) {
+  X_test <- prepare_var_data(test_data, lags)$X
+  y_test <- prepare_var_data(test_data, lags)$y
+  return(
+    list(
+      X_test = X_test,
+      y_test = y_test
+    )
+  )
+}
+
+#' @export
 split_sample <- function(data, ratio_train=0.8, n_train=NULL, end_training=NULL) {
 
   if (is.null(n_train) & is.null(end_training)) {
@@ -39,3 +51,27 @@ prepare_test_data.train_test_split <- function(train_test_split, lags) {
 prepare_test_data <- function(train_test_split, lags) {
   UseMethod("prepare_test_data", train_test_split)
 }
+
+
+apply_scaler_from_training <- function(X, scaler, lags, K) {
+  var_indices <- rep.int(1:K,lags)
+  X <- sapply(
+    1:ncol(X),
+    function(j) {
+      if(scaler$fun == "normalize") {
+        (X[,j]-unlist(scaler$means)[var_indices[j]])/unlist(scaler$sd)[var_indices[j]]
+      }
+    }
+  )
+  return(X)
+}
+
+new_data_supplied <- function(X,y) {
+  new_data_supplied <- !is.null(X) & !is.null(y)
+  if ((!is.null(X) & is.null(y)) | (is.null(X) & !is.null(y))) {
+    stop("Either X or y is NULL. Need both arguments to be specified to compute function for new data.")
+  }
+  return(new_data_supplied)
+}
+
+

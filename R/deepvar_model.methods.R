@@ -1,31 +1,44 @@
-# Fit model: ----
+#' Title
+#'
+#' @param deepvar_model
+#' @param verbose
+#' @param ...
+#'
+#' @importFrom foreach `%dopar%` `%do%`
 #' @importFrom keras `%>%`
+#'
+#' @return
+#' @export
+#'
+#' @examples
 fit.deepvar_model <- function(deepvar_model,verbose=0,...) {
 
   K <- deepvar_model$model_data$K
   X_train <- deepvar_model$model_data$X
   y_train <- deepvar_model$model_data$y
 
-  # Fit models:
-  fitted_models <- lapply(
-    1:K,
-    function(k) {
-      history <- deepvar_model$model_list[[k]] %>%
+  # Train deep ensembles:
+  for (k in 1:K) {
+
+    ensemble <- deepvar_model$model_list[[k]]
+    M <- length(ensemble)
+
+    foreach::foreach(m=1:M,.packages=c("keras")) %do% {
+
+      message(sprintf("Training model %i for response %i",m,k))
+
+      ensemble[[m]] %>%
         keras::fit(
           x = X_train, y = y_train[,,k],
           verbose = verbose,
           ...
         )
-      list(
-        model = deepvar_model$model_list[[k]],
-        history = history
-      )
+
     }
-  )
+
+  }
 
   # Output:
-  deepvar_model$model_list <- lapply(fitted_models, function(fitted_model) fitted_model[["model"]]) # update model list
-  deepvar_model$model_histories <- lapply(fitted_models, function(fitted_model) fitted_model[["history"]]) # extract history
   deepvar_model$X_train <- X_train
   deepvar_model$y_train <- y_train
 
@@ -33,7 +46,7 @@ fit.deepvar_model <- function(deepvar_model,verbose=0,...) {
 
 }
 
-fit <- function(deepvar_model,...) {
+fit <- function(deepvar_model,verbose=0,...) {
   UseMethod("fit", deepvar_model)
 }
 
@@ -68,14 +81,29 @@ posterior_predictive.deepvar_model <- function(deepvar_model, X=NULL) {
     fitted <- lapply(
       1:length(deepvar_model$model_list),
       function(k) {
-        mod <- deepvar_model$model_list[[k]]
-        fitted <- mod(X)
-        y_hat <- as.numeric(fitted %>% tfprobability::tfd_mean())
-        sd <- as.numeric(fitted %>% tfprobability::tfd_stddev())
-        # Rescale data:
-        y_hat <- invert_scaling(y_hat, deepvar_model$model_data, k=k)
-        sd <- invert_scaling(sd, deepvar_model$model_data, k=k)
-        return(list(y_hat=unlist(y_hat), sd=unlist(sd)))
+
+        ensemble <- deepvar_model$model_list[[k]]
+        M <- length(ensemble)
+        y_hat_li <- list()
+        sd_li <- list()
+
+        # Compute fitted
+        foreach::foreach(m=1:M,.packages=c("keras")) %do% {
+          fitted <- ensemble[[m]](X)
+          y_hat <- as.numeric(fitted %>% tfprobability::tfd_mean())
+          sd <- as.numeric(fitted %>% tfprobability::tfd_stddev())
+          # Rescale data:
+          y_hat <- unlist(invert_scaling(y_hat, deepvar_model$model_data, k=k))
+          sd <- unlist(invert_scaling(sd, deepvar_model$model_data, k=k))
+          # Record:
+          y_hat_li[[m]] <- y_hat
+          sd_li[[m]] <- sd
+        }
+
+        y_hat <- rowMeans(do.call(cbind, y_hat_li)) # posterior mean
+        sd <- rowMeans(do.call(cbind, lapply(1:M, function(m) {(sd_li[[m]]^2 + y_hat_li[[m]]^2) - y_hat^2})))
+
+        return(list(y_hat=y_hat, sd=sd))
       }
     )
     # Posterior mean:
@@ -134,7 +162,7 @@ residuals.deepvar_model <- function(deepvar_model, X=NULL, y=NULL) {
       y <- keras::array_reshape(y, dim=c(dim(y)[1],dim(y)[3]))
       y <- invert_scaling(y, deepvar_model$model_data)
     }
-    y_hat <- fitted(deepvar_model, X=X)
+    y_hat <- fitted(deepvar_model, X=X) # automatically rescaled
     res <- y - y_hat
   } else {
     res <- deepvar_model$res

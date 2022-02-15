@@ -15,12 +15,11 @@ deepvareg <- function(
   lags=1,
   num_units=50,
   num_layers=2,
-  p_drop_out=0.5,
+  p_drop_out=0.25,
   horizon=1,
   type="var",
   verbose=0,
-  bayes=TRUE,
-  n_mc=50,
+  size_ensemble=1,
   ...
 ) {
 
@@ -31,7 +30,8 @@ deepvareg <- function(
     deepvar_data,
     num_units = num_units,
     num_layers = num_layers,
-    p_drop_out = p_drop_out
+    p_drop_out = p_drop_out,
+    M = size_ensemble
   )
   # Fit the model:
   deepvar_model <- fit(deepvar_model, verbose=verbose, ...)

@@ -115,7 +115,7 @@ forecast.dvars_model <- function(dvars_model, n.ahead=1) {
   fcst <- data.table::copy(sample[.N,])
   uncty <- data.table::copy(sample[.N,])
   uncty[,(var_names):=0]
-  data <- rbind(sample, fcst)
+  data <- sample
   counter <- 1
   increment_date <- ifelse(
     sample[,class(date)=="Date"],

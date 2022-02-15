@@ -115,7 +115,7 @@ Above all series entered the estimation in levels. This may cause the VAR to be 
 The `VAR_stable` function can be used to do this. Applying this function to the previously estimated VAR reveals that it is in fact not stable, so at least one of the underlying variables is non-stationary. 
 
 ```{r, echo=T}
-invisible(VAR_stable(var_ls, verbose = F)$test_result)
+invisible(stability_var(var_ls, verbose = F)$test_result)
 ```
 
 Standard univariate tests (e.g. ADF) can be used to test individual series for non-stationarity. For simplicity, let us take first differences of all series, which upon visual inspection look stationary. 
@@ -138,7 +138,7 @@ ggplot2::ggplot(chart_data) +
 Re-running the stability test with the transformed data shows that the var is now stable when using `r lags` lags:
 
 ```{r, echo=T}
-invisible(VAR_stable(vareg(dt, lag=3))$test_result)
+invisible(stability_var(vareg(dt, lag=3))$test_result)
 ```
 
 

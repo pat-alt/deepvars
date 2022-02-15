@@ -59,6 +59,12 @@ plot.forecast <- function(
   ci_colour="darkblue"
 ) {
 
+  if (plot_ci) {
+    warning("Uncertainty quantification not currently implemented.")
+    plot_ci <- FALSE
+  }
+
+
   # Forecasts
   K <- forecast$model_data$K
   sample <- data.table::copy(forecast$model_data$data)
