@@ -47,9 +47,6 @@ usethis::use_data(canada, internal = F, overwrite = T)
 # Documentation
 
 ## Vignette ----
-usethis::use_vignette("Intro")s
-usethis::use_vignette("VARs")
-usethis::use_vignette("SVARs")
 usethis::use_vignette("deep_vars")
 devtools::build_vignettes()
 
@@ -58,7 +55,7 @@ devtools::build_vignettes()
 
 ## Code coverage ----
 ## (You'll need GitHub there)
-# usethis::use_github()
+usethis::use_github()
 # usethis::use_travis()
 # usethis::use_appveyor()
 
