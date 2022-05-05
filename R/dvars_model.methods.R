@@ -128,21 +128,18 @@ forecast.dvars_model <- function(dvars_model, n.ahead=1) {
     X <- prepare_predictors(dvars_model, data[,.SD,.SDcols=var_names])
     predictive <- predict(dvars_model, X)
     y_hat <- predictive$predictions
-    uncertainty <- predictive$uncertainty
 
     # Update
     fcst_t <- data.table::dcast(y_hat, .~variable)[,-1]
     fcst_t[,date:=data[.N,date+increment_date]]
     fcst <- rbind(fcst, fcst_t)
 
-    uncty_t <- data.table::dcast(uncertainty, .~variable)[,-1]
-    uncty_t[,date:=data[.N,date+increment_date]]
-    uncty <- rbind(uncty, uncty_t)
-
     data <- rbind(data, fcst_t)
     counter <- counter + 1
   }
   data.table::setcolorder(fcst, "date")
+
+  uncty <- compute_mspe(coeff, n.ahead)
 
   # Return:
   fcst <- list(

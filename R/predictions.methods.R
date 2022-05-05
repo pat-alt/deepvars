@@ -10,7 +10,7 @@ plot.predictions <- function(
   y_true=NULL,
   plot_ci=FALSE,
   ci=.95,
-  ci_colour="darkblue"
+  alpha_ci=0.1
 ) {
 
   # Fitted values:
@@ -37,10 +37,9 @@ plot.predictions <- function(
     q = abs(stats::qnorm(p))
     p <- ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
       ggplot2::geom_ribbon(
-        ggplot2::aes(ymin=value-q*uncertainty, ymax=value+q*uncertainty, group=type),
-        alpha=0.3,
-        fill=ci_colour,
-        colour=ci_colour,
+        ggplot2::aes(ymin=value-q*uncertainty, ymax=value+q*uncertainty, group=type, fill=type),
+        linetype="dashed",
+        alpha=alpha_ci,
         size=0.25
       )
   } else {
@@ -51,6 +50,7 @@ plot.predictions <- function(
   p <- p +
     ggplot2::geom_line() +
     ggplot2::scale_color_discrete(name="Type:") +
+    ggplot2::scale_fill_discrete(name="Type:") +
     ggplot2::facet_wrap(
       ~variable,
       scales="free_y",

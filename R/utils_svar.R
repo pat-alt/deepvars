@@ -1,49 +1,6 @@
 # SVAR utils (deprecated) ----
 # NOTE: These functions are deprecated and therefore not exported.
 
-#' compute_J
-#'
-#' @param K
-#' @param lag
-#'
-#' @return
-#'
-#' @details Helper function to create the allocation matrix J, which can be used to transform a $VAR(p)$ into $VMA$ represntation.
-#'
-compute_J = function(K, lags) {
-
-  J = matrix(0,nrow=K,ncol=K*lags)
-  diag(J) = 1
-  return(J)
-
-}
-
-#' compute_Phi
-#'
-#' @param lag
-#' @param K
-#' @param A_comp
-#' @param const
-#' @param n.ahead
-#'
-#' @importFrom expm `%^%`
-#'
-#' @return
-#'
-#' @description Computes the Phi coefficients (reduced form) in Kilian, Luetkepohl.
-#'
-compute_Phi = function(lags, K, A_comp, const, n.ahead) {
-
-  J = compute_J(K, lags)
-
-  Phi = lapply(1:n.ahead, function(i) {
-    J %*% (A_comp %^% (i-1)) %*% t(J)
-  })
-
-  return(Phi)
-
-}
-
 #' identify_chol
 #'
 #' @param Sigma_res

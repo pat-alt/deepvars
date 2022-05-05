@@ -132,5 +132,7 @@ vareg <- function(data, lags=1, method="ols", constant=TRUE, ci=.95) {
   )
   class(var_model) <- c("var_model", "dvars_model")
 
+  var_model$uncertainty <- uncertainty(var_model)
+
   return(var_model)
 }

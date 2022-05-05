@@ -135,17 +135,28 @@ fitted.deepvar_model <- function(deepvar_model, X=NULL) {
 }
 
 #' @export
-uncertainty.deepvar_model <- function(deepvar_model, X=NULL) {
-  if (is.null(X)) {
-    uncertainty <- deepvar_model$posterior_predictive$sd
+uncertainty.deepvar_model <- function(deepvar_model, X=NULL, assume_gauss=TRUE) {
+
+  if (assume_gauss) {
+    uncertainty <- matrix(
+      rep(sqrt(diag(var_model$Sigma_res)),var_model$model_data$N),
+      ncol=var_model$model_data$K,
+      byrow = TRUE
+    )
+    colnames(uncertainty) <- var_model$model_data$var_names
   } else {
-    uncertainty <- posterior_predictive(deepvar_model, X)$sd
+    if (is.null(X)) {
+      uncertainty <- deepvar_model$posterior_predictive$sd
+    } else {
+      uncertainty <- posterior_predictive(deepvar_model, X)$sd
+    }
   }
+
   return(uncertainty)
 }
 
 #' @export
-uncertainty <- function(deepvar_model, X=NULL) {
+uncertainty <- function(deepvar_model, X=NULL, assume_gauss=TRUE) {
   UseMethod("uncertainty", deepvar_model)
 }
 
