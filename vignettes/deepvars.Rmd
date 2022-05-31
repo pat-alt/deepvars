@@ -84,9 +84,9 @@ var_model <- vareg(train_data, lags = lags)
 deepvar_model <- deepvareg(train_data, lags=lags, num_units = 100, epochs=500)
 ```
 
-### 1-step ahead predictions
+### 1-step ahead 
 
-#### In-sample
+#### Predictions
 
 ```{r}
 y_true <- var_model$y_train
@@ -94,30 +94,12 @@ y_true <- var_model$y_train
 
 ```{r, pred-var, fig.dim=c(7,4), fig.cap="Predictions from VAR."}
 pred_var <- predict(var_model)
-plot(pred_var, y_true = y_true)
+plot(pred_var, y_true = y_true, plot_ci=TRUE)
 ```
 
 ```{r, pred-mlstm, fig.dim=c(7,4), fig.cap="Predictions from MLSTM."}
 pred_deepvar <- predict(deepvar_model)
-plot(pred_deepvar, y_true = y_true)
-```
-
-#### Out-of-sample
-
-```{r, warning=FALSE}
-X_test <- prepare_test_data(train_test_split, lags=lags)$X_test
-y_test <- prepare_test_data(train_test_split, lags=lags)$y_test
-```
-
-
-```{r, out-pred-var, fig.dim=c(7,4), fig.cap="Out-of-sample predictions from VAR."}
-pred_var <- predict(var_model, X=X_test)
-plot(pred_var, y_true = y_test)
-```
-
-```{r, out-pred-dvar, fig.dim=c(7,4), fig.cap="Out-of-sample predictions from DVAR."}
-pred_dvar <- predict(deepvar_model, X=X_test)
-plot(pred_dvar, y_true = y_test)
+plot(pred_deepvar, y_true = y_true, plot_ci=TRUE)
 ```
 
 #### Cumulative loss
@@ -137,42 +119,6 @@ ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
       x="Date",
       y="Squared error"
     )
-```
-
-```{r, cum-loss-out, fig.dim=c(7,4), fig.cap="Comparison of cumulative loss for the two models (test sample)."}
-cum_loss_var <- cum_loss(var_model, X=X_test, y=y_test)$cum_loss[,type:="var"]
-cum_loss_dvar <- cum_loss(deepvar_model, X=X_test, y=y_test)$cum_loss[,type:="deepvar"]
-dt_plot <- rbind(cum_loss_dvar, cum_loss_var)
-# dt_plot[,date:=test_data$date,by=.(variable, type)]
-dt_plot[,type:=factor(type)]
-ggplot2::ggplot(data=dt_plot, ggplot2::aes(x=date, y=value, colour=type)) +
-  ggplot2::geom_line() +
-  ggplot2::facet_wrap(~variable, scales = "free_y") +
-  ggplot2::scale_color_discrete(name="Model:") +
-  ggplot2::labs(
-      x="Date",
-      y="Squared error"
-    )
-```
-
-#### RMSE
-
-```{r}
-rmse_var <- rbind(
-  rmse(var_model)[,model:="var"][,sample:="train"],
-  rmse(var_model, X=X_test, y=y_test)[,model:="var"][,sample:="test"]
-)
-rmse_dvar <- rbind(
-  rmse(deepvar_model)[,model:="deepvar"][,sample:="train"],
-  rmse(deepvar_model, X=X_test, y=y_test)[,model:="deepvar"][,sample:="test"]
-)
-tab_rmse <- rbind(rmse_var, rmse_dvar)
-tab_rmse <- data.table::dcast(tab_rmse, sample + variable ~ model, value.var = "value")
-knitr::kable(
-  tab_rmse, 
-  col.names = c("Sample", "Variable", "DVAR", "VAR"),
-  digits = 5
-) 
 ```
 
 ### h-step ahead forecasts
@@ -223,5 +169,12 @@ knitr::kable(
   digits = 5
 ) 
 ```
+
+#### Rolling Window
+
+```{r}
+
+```
+
 
 

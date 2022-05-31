@@ -28,8 +28,8 @@ fitted.var_model <- function(var_model, X=NULL) {
 }
 
 #' @export
-uncertainty.var_model <- function(var_model, X=NULL) {
-  if (is.null(X)) {
+uncertainty.var_model <- function(var_model, X=NULL, assume_gauss=TRUE) {
+  if (assume_gauss) {
     uncertainty <- matrix(
       rep(sqrt(diag(var_model$Sigma_res)),var_model$model_data$N),
       ncol=var_model$model_data$K,
@@ -38,18 +38,13 @@ uncertainty.var_model <- function(var_model, X=NULL) {
     colnames(uncertainty) <- var_model$model_data$var_names
   } else {
     # PLACEHOLDER:
-    uncertainty <- matrix(
-      rep(sqrt(diag(var_model$Sigma_res)),nrow(X)),
-      ncol=var_model$model_data$K,
-      byrow = TRUE
-    )
-    colnames(uncertainty) <- var_model$model_data$var_names
+    warning("Not implemeneted.")
   }
   return(uncertainty)
 }
 
 #' @export
-uncertainty <- function(var_model, X=NULL) {
+uncertainty <- function(var_model, X=NULL, assume_gauss=TRUE) {
   UseMethod("uncertainty", var_model)
 }
 
