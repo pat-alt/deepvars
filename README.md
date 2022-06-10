@@ -7,11 +7,14 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 <!-- badges: end -->
 
 **NOTE** ℹ️: This is the repository for the companion package to our
-paper Altmeyer, Agusti, and Vidal-Quadras Costa (2021). We recently
-presented our paper at the [NeurIPS 2021 MLECON
+paper Altmeyer, Agusti, and Vidal-Quadras Costa (2021). We presented our paper at the [NeurIPS 2021 MLECON
 workshop](https://nips.cc/Conferences/2021/ScheduleMultitrack?event=21847).
 For the specific code used for the paper and additional resources please
 see [this repository](https://github.com/pat-alt/deepvarsMacro).
+
+## Disclaimer ⚠
+
+Since we worked on this project in 2021, Patrick has continued to work on the [`deepvar`](https://github.com/pat-alt/deepvars) package in his spare time. Among other things, he has found a bug in the original code, which has produced erroneous results for the test set in Table 1 of the paper that introduced the the approach ([see here](https://github.com/pat-alt/deepvarsMacro)). We are also not convinced that the empirical results presented in the paper are robust, after looking at replicating the findings for another dataset. Nonethess, we believe that the proposed methodological framework is interesting and this package should help facilitate future researchers interested in exploring the applicability of deep learning to macroeconomic data. Since Patrick is caught up in his PhD for now, this project is officially idle. Do feel free to salvage what you can though.
 
 ## `deepvars`
 
