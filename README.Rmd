@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 > [!WARNING]  
-> I worked on this code base during my master's project in 2021 and today it is no longer actively maintained. Since the TensorFlow interface uses reticulate, you may run into compatibility issues with Python dependencies (see #4). While these things should be salvageable and I welcome contributions through pull requests, I have no capacity to work on this package myself. 
+> I worked on this code base during my master's project in 2021 and today it is no longer actively maintained. Since the TensorFlow interface uses reticulate, you may run into compatibility issues with Python dependencies (see [#4](https://github.com/pat-alt/deepvars/issues/4)). While these things should be salvageable and I welcome contributions through pull requests, I have no capacity to work on this package myself. 
 
 > [!NOTE]  
 > This is the repository for the companion package to our paper @altmeyer2021deep. We recently presented our paper at the [NeurIPS 2021 MLECON workshop](https://nips.cc/Conferences/2021/ScheduleMultitrack?event=21847). For the specific code used for the paper and additional resources please see [this repository](https://github.com/pat-alt/deepvarsMacro).
@@ -69,12 +69,6 @@ Full documentation of the package is still a work-in-progress. In the meantime, 
 ```{r, eval=FALSE}
 utils::browseVignettes('deepvars')
 ```
-
-## Disclaimer
-
-*Date*: 2 December, 2021.
-
-This package was developed in tandem with the initial research for my masters thesis. Documentation is incomplete and it should at this point **not** be regarded as a fully-fledged, tested and production-ready piece of software, so please bear this in mind. That being said, I'm quite confident about the basic functionality of training and predicting from a Deep VAR as well as various plotting methods that can be used for visualizing the results. I encourage you to try it out yourself and should you encounter any problem, please just open an issue.
 
 
 
