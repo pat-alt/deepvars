@@ -6,11 +6,11 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
-**NOTE** ℹ️: This is the repository for the companion package to our
-paper Altmeyer, Agusti, and Vidal-Quadras Costa (2021). We presented our paper at the [NeurIPS 2021 MLECON
-workshop](https://nips.cc/Conferences/2021/ScheduleMultitrack?event=21847).
-For the specific code used for the paper and additional resources please
-see [this repository](https://github.com/pat-alt/deepvarsMacro).
+> [!WARNING]  
+> I worked on this code base during my master's project in 2021 and today it is no longer actively maintained. Since the TensorFlow interface uses reticulate, you may run into compatibility issues with Python dependencies (see #4). While these things should be salvageable and I welcome contributions through pull requests, I have no capacity to work on this package myself. 
+
+> [!NOTE]  
+> This is the repository for the companion package to our paper @altmeyer2021deep. We recently presented our paper at the [NeurIPS 2021 MLECON workshop](https://nips.cc/Conferences/2021/ScheduleMultitrack?event=21847). For the specific code used for the paper and additional resources please see [this repository](https://github.com/pat-alt/deepvarsMacro).
 
 ## Disclaimer ⚠
 
